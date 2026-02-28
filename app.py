@@ -35,7 +35,7 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Database connection function
-ef get_db_connection():
+def get_db_connection():
     try:
         print("Connecting with:",
               os.getenv("DB_HOST"),
@@ -1318,4 +1318,5 @@ def get_crop_stats():
         connection.close()
 if __name__ == '__main__':
     init_db()
+
 
