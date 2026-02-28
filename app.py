@@ -35,23 +35,27 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Database connection function
-def get_db_connection():
+ef get_db_connection():
     try:
+        print("Connecting with:",
+              os.getenv("DB_HOST"),
+              os.getenv("DB_USER"),
+              os.getenv("DB_NAME"),
+              os.getenv("DB_PORT"))
+
         connection = mysql.connector.connect(
             host=os.getenv("DB_HOST"),
             user=os.getenv("DB_USER"),
             password=os.getenv("DB_PASSWORD"),
             database=os.getenv("DB_NAME"),
-            port=int(os.getenv("DB_PORT", 3306)),
-            ssl_disabled=False,
-            connection_timeout=10,
-            autocommit=True
+            port=int(os.getenv("DB_PORT")),
+            connection_timeout=10
         )
+        print("DB CONNECTED SUCCESS")
         return connection
     except Exception as e:
-        print("DATABASE CONNECTION ERROR:", e)
+        print("DB ERROR:", e)
         return None
-
 
 def init_db():
     connection = get_db_connection()
@@ -1314,3 +1318,4 @@ def get_crop_stats():
         connection.close()
 if __name__ == '__main__':
     init_db()
+
