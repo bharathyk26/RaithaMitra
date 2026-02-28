@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Karnataka Krishi Mitra - Farmer's Digital Platform</title>
+    
+    <!-- Fonts with Emoji Support -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <style>
+        /* Ensure emoji rendering */
+        body, * {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 
+                         'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 
+                         'Apple Color Emoji', sans-serif;
+        }
+        
+        /* Specific emoji styling */
+        .emoji {
+            font-family: 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji';
+            font-style: normal;
+        }
+
+        .language-switcher-farmer {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: auto;
+            margin-right: 1rem;
+        }
+
+        .lang-btn-farmer {
+            background: none;
+            border: 2px solid #9ca3af;
+            color: #374151;
+            padding: 0.4rem 0.8rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .lang-btn-farmer:hover {
+            background: #f3f4f6;
+            border-color: #1e9a46;
+        }
+
+        .lang-btn-farmer.active {
+            background: #1e9a46;
+            color: white;
+            border-color: #1e9a46;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+  <div class="header-content">
+    <!-- LOGO -->
+    <div class="logo">
+      <span class="logo-icon emoji">&#127806;</span>
+      <div>
+        <h1>{{ t('karnataka_krishi_mitra') }}</h1>
+        <p class="tagline">{{ t('digital_farming_companion') }}</p>
+      </div>
+    </div>
+
+    <!-- USER DROPDOWN -->
+    <div class="user-section">
+      <div class="language-switcher-farmer">
+        <a href="{{ url_for('set_lang', lang='en') }}" class="lang-btn-farmer {% if language == 'en' %}active{% endif %}">EN</a>
+        <a href="{{ url_for('set_lang', lang='kn') }}" class="lang-btn-farmer {% if language == 'kn' %}active{% endif %}">ಕನ್ನಡ</a>
+      </div>
+      
+      <div class="user-dropdown">
+        <button class="user-dropdown-btn" onclick="toggleUserDropdown()">
+          <span class="user-icon emoji">&#128100;</span>
+          <div class="user-details">
+            <div class="user-name">{{ full_name }}</div>
+            <div class="user-role">{{ t('farmer') }}</div>
+          </div>
+          <span class="dropdown-arrow">&#9660;</span>
+        </button>
+
+        <div class="user-dropdown-menu" id="userDropdownMenu">
+          <div class="dropdown-header">
+            <strong>{{ full_name }}</strong>
+            <p>@{{ username }}</p>
+          </div>
+          <a href="{{ url_for('my_account') }}" class="dropdown-item">
+            <span class="emoji">&#128100;</span> {{ t('my_account') }}
+          </a>
+          <a href="{{ url_for('my_crop_applications') }}" class="dropdown-item">
+            <span class="emoji">&#128203;</span> {{ t('my_crop_applications') }}
+          </a>
+          <a href="{{ url_for('insurance_details') }}" class="dropdown-item">
+            <span class="emoji">&#128737;&#65039;</span> {{ t('insurance_details') }}
+          </a>
+          <div class="dropdown-divider"></div>
+          <a href="{{ url_for('logout') }}" class="dropdown-item logout">
+            <span class="emoji">&#128682;</span> {{ t('logout') }}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAVIGATION -->
+  <nav class="main-nav">
+    <div class="nav-content">
+      <button onclick="showSection('home')" class="nav-item active">
+        <span class="nav-icon emoji">&#127968;</span>
+        <span>{{ t('home') }}</span>
+      </button>
+      <a href="{{ url_for('crop_application') }}" class="nav-item">
+        <span class="nav-icon emoji">&#127793;</span>
+        <span>{{ t('crop_applications') }}</span>
+      </a>
+      <button onclick="showSection('soil-crop')" class="nav-item">
+        <span class="nav-icon emoji">&#127806;</span>
+        <span>Soil & Crop</span>
+      </button>
+      <button onclick="showSection('weather')" class="nav-item">
+        <span class="nav-icon emoji">&#127780;&#65039;</span>
+        <span>Weather</span>
+      </button>
+      <button onclick="showSection('marketplace')" class="nav-item">
+        <span class="nav-icon emoji">&#128722;</span>
+        <span>Marketplace</span>
+      </button>
+      <a href="{{ url_for('apply_insurance') }}" class="nav-item">
+        <span class="nav-icon emoji">&#128737;&#65039;</span>
+        <span>Insurance</span>
+      </a>
+      <button onclick="showSection('schemes')" class="nav-item">
+        <span class="nav-icon emoji">&#128220;</span>
+        <span>Govt Schemes</span>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<!-- FLASH MESSAGES -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+          <span class="flash-icon">
+            {% if category == 'success' %}<span class="emoji">&#9989;</span>{% elif category == 'danger' %}<span class="emoji">&#10060;</span>{% elif category == 'warning' %}<span class="emoji">&#9888;</span>{% else %}<span class="emoji">&#8505;</span>{% endif %}
+          </span>
+          <span>{{ message }}</span>
+          <button class="flash-close" onclick="this.parentElement.remove()">&#215;</button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<div class="container">
+  <!-- HOME SECTION -->
+  <section id="home" class="section active">
+    <div class="section-header">
+      <h2>Welcome to Karnataka Krishi Mitra</h2>
+      <p>Your complete digital platform for modern farming - soil recommendations, weather updates, marketplace, and government schemes</p>
+    </div>
+
+    <div class="card-grid">
+      <div class="card stat-card">
+        <div class="card-icon emoji">&#127793;</div>
+        <div class="stat-number">30+</div>
+        <div class="stat-label">Districts Covered</div>
+      </div>
+      <div class="card stat-card">
+        <div class="card-icon emoji">&#9728;&#65039;</div>
+        <div class="stat-number">Real-time</div>
+        <div class="stat-label">Weather Updates</div>
+      </div>
+      <div class="card stat-card">
+        <div class="card-icon emoji">&#128722;</div>
+        <div class="stat-number">Direct</div>
+        <div class="stat-label">Buyer Connection</div>
+      </div>
+      <div class="card stat-card">
+        <div class="card-icon emoji">&#128203;</div>
+        <div class="stat-number">50+</div>
+        <div class="stat-label">Govt Schemes</div>
+      </div>
+    </div>
+
+    <div class="card-grid">
+      <a href="{{ url_for('crop_application') }}" class="card feature-card">
+        <div class="card-icon emoji">&#127793;</div>
+        <h3>Crop Application</h3>
+        <p>Plan your crop cultivation and get market price estimates for your selected crops.</p>
+      </a>
+      
+      <div class="card feature-card" onclick="showSection('soil-crop')">
+        <div class="card-icon emoji">&#127806;</div>
+        <h3>Soil & Crop Recommendations</h3>
+        <p>Get taluka-wise soil analysis and crop recommendations based on scientific agricultural data.</p>
+      </div>
+      
+      <div class="card feature-card" onclick="showSection('weather')">
+        <div class="card-icon emoji">&#127780;&#65039;</div>
+        <h3>Weather Forecast</h3>
+        <p>Access real-time weather updates and 3-month forecasts to plan your agricultural activities.</p>
+      </div>
+      
+      <div class="card feature-card" onclick="showSection('marketplace')">
+        <div class="card-icon emoji">&#128722;</div>
+        <h3>Digital Marketplace</h3>
+        <p>Connect directly with buyers, sell your produce at fair prices, and eliminate middlemen.</p>
+      </div>
+      
+      <div class="card feature-card" onclick="showSection('schemes')">
+        <div class="card-icon emoji">&#128220;</div>
+        <h3>Government Schemes</h3>
+        <p>Browse comprehensive database of government subsidies, schemes, and farmer benefits.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOIL & CROP SECTION -->
+  <section id="soil-crop" class="section">
+    <div class="section-header">
+      <h2>Soil & Crop Recommendations</h2>
+      <p>Select your district and taluka to get personalized soil and crop recommendations</p>
+    </div>
+
+    <div class="card">
+      <form id="soil-crop-form">
+        <div class="form-group">
+          <label for="district">Select District</label>
+          <select id="district" required onchange="updateTalukas()">
+            <option value="">Choose your district</option>
+            <option value="Bengaluru Urban">Bengaluru Urban</option>
+            <option value="Mysuru">Mysuru</option>
+            <option value="Mandya">Mandya</option>
+            <option value="Tumakuru">Tumakuru</option>
+            <option value="Hassan">Hassan</option>
+            <option value="Chikkamagaluru">Chikkamagaluru</option>
+            <option value="Belagavi">Belagavi</option>
+            <option value="Dharwad">Dharwad</option>
+            <option value="Kalaburagi">Kalaburagi</option>
+            <option value="Ballari">Ballari</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="taluka">Select Taluka</label>
+          <select id="taluka" required>
+            <option value="">First select a district</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn">Get Recommendations</button>
+      </form>
+    </div>
+
+    <div id="soil-results" style="display: none;">
+      <div class="results-container">
+        <h3 style="color: var(--primary-green); margin-bottom: 1.5rem;">
+          Recommendations for <span id="selected-location"></span>
+        </h3>
+
+        <div class="card-grid">
+          <div class="card">
+            <h4 style="color: var(--primary-green);">Soil Type</h4>
+            <p id="soil-type" style="font-size: 1.1rem; margin-top: 0.5rem;"></p>
+          </div>
+          <div class="card">
+            <h4 style="color: var(--primary-green);">pH Level</h4>
+            <p id="ph-level" style="font-size: 1.1rem; margin-top: 0.5rem;"></p>
+          </div>
+        </div>
+
+        <div class="recommendation-item">
+          <h4><span class="emoji">&#127806;</span> Recommended Crops (Kharif Season)</h4>
+          <p id="kharif-crops"></p>
+        </div>
+
+        <div class="recommendation-item">
+          <h4><span class="emoji">&#127805;</span> Recommended Crops (Rabi Season)</h4>
+          <p id="rabi-crops"></p>
+        </div>
+
+        <div class="recommendation-item">
+          <h4><span class="emoji">&#128167;</span> Irrigation Recommendations</h4>
+          <p id="irrigation"></p>
+        </div>
+
+        <div class="recommendation-item">
+          <h4><span class="emoji">&#127793;</span> Fertilizer Recommendations</h4>
+          <p id="fertilizer"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WEATHER SECTION -->
+  <section id="weather" class="section">
+    <div class="section-header">
+      <h2>Weather Information</h2>
+      <p>Real-time weather updates and extended forecast for your area</p>
+    </div>
+
+    <div class="card">
+      <div class="form-group">
+        <label for="weather-location">Select Your Location</label>
+        <select id="weather-location" onchange="loadWeather()">
+          <option value="Bengaluru">Bengaluru</option>
+          <option value="Mysuru">Mysuru</option>
+          <option value="Mandya">Mandya</option>
+          <option value="Hassan">Hassan</option>
+          <option value="Tumakuru">Tumakuru</option>
+          <option value="Belagavi">Belagavi</option>
+          <option value="Dharwad">Dharwad</option>
+          <option value="Kalaburagi">Kalaburagi</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="weather-widget">
+      <h3 style="margin-bottom: 1.5rem;">Current Weather - <span id="weather-city">Bengaluru</span></h3>
+      <div class="weather-current">
+        <div>
+          <div class="weather-temp"><span id="current-temp">28</span>°C</div>
+          <div style="font-size: 1.2rem; margin-top: 0.5rem;" id="current-condition">Partly Cloudy</div>
+        </div>
+        <div style="font-size: 5rem;" id="weather-icon" class="emoji">&#9925;</div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.5rem;">
+        <div>
+          <div style="opacity: 0.8;">Humidity</div>
+          <div style="font-size: 1.5rem; font-weight: 600;"><span id="humidity">65</span>%</div>
+        </div>
+        <div>
+          <div style="opacity: 0.8;">Wind Speed</div>
+          <div style="font-size: 1.5rem; font-weight: 600;"><span id="wind-speed">12</span> km/h</div>
+        </div>
+        <div>
+          <div style="opacity: 0.8;">Rainfall</div>
+          <div style="font-size: 1.5rem; font-weight: 600;"><span id="rainfall">5</span> mm</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="color: var(--primary-green); margin-bottom: 1.5rem;">7-Day Forecast</h3>
+      <div class="weather-forecast" id="forecast-container"></div>
+    </div>
+
+    <div class="card">
+      <h3 style="color: var(--primary-green); margin-bottom: 1rem;">
+        <span class="emoji">&#128197;</span> 3-Month Extended Forecast
+      </h3>
+      <div class="extended-forecast" id="extended-forecast-container">
+        <p style="text-align: center; padding: 2rem;">Loading extended forecast...</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="color: var(--primary-green); margin-bottom: 1rem;">
+        <span class="emoji">&#127806;</span> Agricultural Advisory
+      </h3>
+      <p id="agri-advisory">Based on current weather conditions, this is a good time for irrigation.</p>
+    </div>
+  </section>
+
+  <!-- MARKETPLACE SECTION -->
+  <section id="marketplace" class="section">
+    <div class="section-header">
+      <h2>Digital Marketplace</h2>
+      <p>Connect directly with buyers and sell your produce at fair prices</p>
+    </div>
+
+    <div class="add-listing-form">
+      <h3 style="color: var(--primary-green); margin-bottom: 1.5rem;">Add Your Product Listing</h3>
+      <form id="add-product-form">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label for="product-name">Product Name</label>
+            <input type="text" id="product-name" placeholder="e.g., Tomatoes" required>
+          </div>
+          <div class="form-group">
+            <label for="product-category">Category</label>
+            <select id="product-category" required>
+              <option value="Vegetables">Vegetables</option>
+              <option value="Fruits">Fruits</option>
+              <option value="Grains">Grains</option>
+              <option value="Pulses">Pulses</option>
+              <option value="Spices">Spices</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="product-quantity">Quantity (kg/quintal)</label>
+            <input type="text" id="product-quantity" placeholder="e.g., 50 kg" required>
+          </div>
+          <div class="form-group">
+            <label for="product-price">Price (&#8377; per unit)</label>
+            <input type="number" id="product-price" placeholder="e.g., 30" required>
+          </div>
+          <div class="form-group">
+            <label for="seller-name">Your Name</label>
+            <input type="text" id="seller-name" placeholder="Farmer name" required>
+          </div>
+          <div class="form-group">
+            <label for="seller-contact">Contact Number</label>
+            <input type="tel" id="seller-contact" placeholder="Mobile number" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="seller-location">Location</label>
+          <input type="text" id="seller-location" placeholder="Village, Taluka, District" required>
+        </div>
+        <button type="submit" class="btn">Add Listing</button>
+      </form>
+    </div>
+
+    <div class="search-container">
+      <input type="text" class="search-bar" id="marketplace-search" 
+             placeholder="Search for products, categories, or locations..." 
+             oninput="filterProducts()">
+      <span class="search-icon emoji">&#128269;</span>
+    </div>
+
+    {% if show_marketplace_products %}
+    <div class="card">
+      <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+        <button class="btn" onclick="filterCategory('all')" style="background: var(--accent-orange);">All Products</button>
+        <button class="btn" onclick="filterCategory('Vegetables')">Vegetables</button>
+        <button class="btn" onclick="filterCategory('Fruits')">Fruits</button>
+        <button class="btn" onclick="filterCategory('Grains')">Grains</button>
+        <button class="btn" onclick="filterCategory('Pulses')">Pulses</button>
+      </div>
+    </div>
+
+    <div class="product-grid" id="products-container"></div>
+    {% endif %}
+  </section>
+
+  <!-- GOVERNMENT SCHEMES SECTION -->
+  <section id="schemes" class="section">
+    <div class="section-header">
+      <h2>Government Schemes & Subsidies</h2>
+      <p>Comprehensive database of government benefits for farmers</p>
+    </div>
+
+    <div class="search-container">
+      <input type="text" class="search-bar" id="scheme-search" 
+             placeholder="Search schemes by name, category, or benefits..." 
+             oninput="filterSchemes()">
+      <span class="search-icon emoji">&#128269;</span>
+    </div>
+
+    <div class="card">
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+        <button class="btn" onclick="filterSchemeCategory('all')" style="background: var(--accent-orange);">All Schemes</button>
+        <button class="btn" onclick="filterSchemeCategory('Credit')">Credit & Loans</button>
+        <button class="btn" onclick="filterSchemeCategory('Insurance')">Insurance</button>
+        <button class="btn" onclick="filterSchemeCategory('Subsidy')">Subsidies</button>
+        <button class="btn" onclick="filterSchemeCategory('Equipment')">Equipment</button>
+      </div>
+    </div>
+
+    <div id="schemes-container"></div>
+  </section>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-content">
+    <div class="footer-section">
+      <h4><span class="emoji">&#127806;</span> Karnataka Krishi Mitra</h4>
+      <p>Empowering farmers with digital solutions for better agricultural practices and market access.</p>
+    </div>
+    <div class="footer-section">
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a href="#" onclick="showSection('soil-crop')">Soil & Crop Info</a></li>
+        <li><a href="#" onclick="showSection('weather')">Weather Updates</a></li>
+        <li><a href="#" onclick="showSection('marketplace')">Marketplace</a></li>
+        <li><a href="#" onclick="showSection('schemes')">Govt Schemes</a></li>
+      </ul>
+    </div>
+    <div class="footer-section">
+      <h4>Contact Us</h4>
+      <p><span class="emoji">&#128231;</span> Email: support@krishimitra.gov.in</p>
+      <p><span class="emoji">&#128222;</span> Helpline: 1800-123-4567</p>
+      <p><span class="emoji">&#128337;</span> Mon-Sat: 9:00 AM - 6:00 PM</p>
+    </div>
+    <div class="footer-section">
+      <h4>Follow Us</h4>
+      <div class="social-links">
+        <a href="#" class="social-icon emoji">&#128248;</a>
+        <a href="#" class="social-icon emoji">&#128247;</a>
+        <a href="#" class="social-icon emoji">&#128038;</a>
+        <a href="#" class="social-icon emoji">&#9654;&#65039;</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2024 Karnataka Krishi Mitra. All rights reserved. | A Government of Karnataka Initiative</p>
+  </div>
+</footer>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+<script>
+// User dropdown toggle
+function toggleUserDropdown() {
+  const menu = document.getElementById('userDropdownMenu');
+  menu.classList.toggle('show');
+}
+
+// Close dropdown when clicking outside
+window.addEventListener('click', function(e) {
+  if (!e.target.matches('.user-dropdown-btn') && !e.target.closest('.user-dropdown-btn')) {
+    const dropdown = document.getElementById('userDropdownMenu');
+    if (dropdown && dropdown.classList.contains('show')) {
+      dropdown.classList.remove('show');
+    }
+  }
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function(){
+  if (document.getElementById('products-container')) {
+    loadProducts();
+  }
+  loadSchemes();
+  loadWeather();
+  loadForecast();
+  loadExtendedForecast();
+  loadAdvisory();
+});
+
+async function loadExtendedForecast(){
+  try{
+    const res = await fetch('/api/weather/extended');
+    const months = await res.json();
+    const container = document.getElementById('extended-forecast-container');
+    container.innerHTML = '';
+    
+    months.forEach(m => {
+      const div = document.createElement('div');
+      div.className = 'extended-forecast-card';
+      div.innerHTML = `
+        <h4>${m.month}</h4>
+        <div class="forecast-detail">
+          <span>Avg Temperature:</span>
+          <strong>${m.temp_avg}°C</strong>
+        </div>
+        <div class="forecast-detail">
+          <span>Range:</span>
+          <strong>${m.temp_min}°C - ${m.temp_max}°C</strong>
+        </div>
+        <div class="forecast-detail">
+          <span>Rainfall:</span>
+          <strong>${m.rainfall} mm</strong>
+        </div>
+        <div class="forecast-detail">
+          <span>Humidity:</span>
+          <strong>${m.humidity}%</strong>
+        </div>
+        <div class="forecast-condition">${m.condition}</div>
+      `;
+      container.appendChild(div);
+    });
+  }catch(e){
+    console.error(e);
+  }
+}
+</script>
+
+</body>
+</html>

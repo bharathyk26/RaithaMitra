@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>{{ t('login') }} - Karnataka Krishi Mitra</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .language-switcher-login {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      display: flex;
+      gap: 0.5rem;
+      z-index: 100;
+    }
+
+    .lang-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(30, 154, 70, 0.5);
+      color: white;
+      padding: 0.5rem 0.8rem;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+      font-size: 0.9rem;
+    }
+
+    .lang-btn:hover {
+      background: rgba(30, 154, 70, 0.1);
+    }
+
+    .lang-btn.active {
+      background: #1e9a46;
+      border-color: #1e9a46;
+    }
+  </style>
+</head>
+<body class="auth-page">
+  <!-- Language Switcher -->
+  <div class="language-switcher-login">
+    <a href="{{ url_for('set_lang', lang='en') }}" class="lang-btn {% if language == 'en' %}active{% endif %}">English</a>
+    <a href="{{ url_for('set_lang', lang='kn') }}" class="lang-btn {% if language == 'kn' %}active{% endif %}">ಕನ್ನಡ</a>
+  </div>
+
+  <div class="auth-container">
+    <!-- LEFT SIDE - Branding -->
+    <div class="auth-brand">
+      <div class="brand-content">
+        <div class="brand-logo">
+          <span class="brand-icon">🌾</span>
+          <h1>{{ t('karnataka_krishi_mitra') }}</h1>
+          <p class="brand-tagline">Empowering Farmers Through Technology</p>
+        </div>
+        <div class="brand-features">
+          <div class="feature-item">
+            <span class="feature-icon">🌱</span>
+            <div>
+              <h3>Soil & Crop Guidance</h3>
+              <p>Get scientific recommendations for your region</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">🌤️</span>
+            <div>
+              <h3>Weather Forecasts</h3>
+              <p>Plan farming activities with accurate weather data</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">🛒</span>
+            <div>
+              <h3>Direct Market Access</h3>
+              <p>Sell produce at fair prices, eliminate middlemen</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">📋</span>
+            <div>
+              <h3>Government Schemes</h3>
+              <p>Access subsidies and benefits information</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDE - Login Form -->
+    <div class="auth-form-section">
+      <div class="auth-card">
+        <div class="auth-header">
+          <h2>{{ t('welcome') }} {{ t('back') }}!</h2>
+          <p>{{ t('login') }} {{ t('farmer') }} {{ t('login') }}</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-list">
+              {% for cat, msg in messages %}
+                <div class="flash flash-{{ cat }}">
+                  <span class="flash-icon">
+                    {% if cat == 'success' %}✓{% elif cat == 'danger' %}✕{% elif cat == 'warning' %}⚠{% else %}ℹ{% endif %}
+                  </span>
+                  {{ msg }}
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <form method="post" action="{{ url_for('login') }}">
+          <div class="form-group">
+            <label for="username">
+              <span class="label-icon">👤</span> {{ t('username') }}
+            </label>
+            <input 
+              type="text" 
+              id="username" 
+              name="username" 
+              placeholder="Enter your username" 
+              required 
+              autofocus
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="password">
+              <span class="label-icon">🔒</span> {{ t('password') }}
+            </label>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              placeholder="Enter your password" 
+              required
+            >
+          </div>
+
+          <button class="btn btn-primary btn-full" type="submit">
+            <span>🔓</span> {{ t('login') }} to Account
+          </button>
+        </form>
+
+        <div class="auth-divider">
+          <span>{{ t('dont_have_account') }}</span>
+        </div>
+
+        <a href="{{ url_for('register') }}" class="btn btn-outline btn-full">
+          <span>✨</span> {{ t('register_here') }}
+        </a>
+
+        <a href="{{ url_for('admin_login') }}" class="btn btn-outline btn-full" style="margin-top: 10px;">
+          <span>🏠</span> Back to Admin Login
+        </a>
+
+        <div class="auth-info">
+          <p><strong>Demo Credentials:</strong></p>
+          <p>{{ t('username') }}: <code>farmer</code> | {{ t('password') }}: <code>farmer123</code></p>
+        </div>
+      </div>
+    </div>
+  </div>

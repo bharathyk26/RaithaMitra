@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{ t('insurance_management') }} - {{ t('admin_panel') }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .admin-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+        
+        .insurance-grid {
+            display: grid;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .insurance-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .insurance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f3f4f6;
+        }
+        
+        .insurance-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .detail-box {
+            padding: 0.75rem;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+        
+        .status-actions {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid #f3f4f6;
+        }
+        
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .status-pending-approval {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-approved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .status-active {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+    </style>
+</head>
+<body>
+  <header class="admin-header">
+    <div class="header-content">
+      <div class="logo">
+        <span class="logo-icon">🔐</span>
+        <div>
+          <h1>{{ t('admin_panel') }}</h1>
+          <p class="tagline">{{ t('karnataka_krishi_mitra') }}</p>
+        </div>
+      </div>
+
+      <div class="user-section" style="display: flex; align-items: center; gap: 1rem;">
+        <div style="display: flex; gap: 0.5rem;">
+          <a href="{{ url_for('set_lang', lang='en') }}" class="lang-switch-btn {% if language == 'en' %}active{% endif %}">EN</a>
+          <a href="{{ url_for('set_lang', lang='kn') }}" class="lang-switch-btn {% if language == 'kn' %}active{% endif %}">ಕನ್ನಡ</a>
+        </div>
+        <div class="user-info">
+          <span class="user-icon">👨‍💼</span>
+          <div>
+            <div class="user-name">{{ admin.full_name }}</div>
+            <div class="user-role">{{ t('administrator') }}</div>
+          </div>
+        </div>
+        <a href="{{ url_for('admin_logout') }}" class="btn-logout">
+          <span>🚪</span>
+          {{ t('logout') }}
+        </a>
+      </div>
+    </div>
+
+    <nav class="main-nav">
+      <div class="nav-content">
+        <a href="{{ url_for('admin_dashboard') }}" class="nav-item">
+          <span class="nav-icon">📊</span>
+          <span>{{ t('dashboard') }}</span>
+        </a>
+        <a href="{{ url_for('admin_users') }}" class="nav-item">
+          <span class="nav-icon">👥</span>
+          <span>{{ t('users') }}</span>
+        </a>
+        <a href="{{ url_for('admin_crop_applications') }}" class="nav-item">
+          <span class="nav-icon">🌾</span>
+          <span>{{ t('crop_applications') }}</span>
+        </a>
+        <a href="{{ url_for('admin_insurances') }}" class="nav-item active">
+          <span class="nav-icon">🛡️</span>
+          <span>{{ t('insurances') }}</span>
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash-message flash-{{ category }}">
+            <span class="flash-icon">
+              {% if category == 'success' %}✓{% elif category == 'danger' %}✕{% elif category == 'warning' %}⚠{% else %}ℹ{% endif %}
+            </span>
+            <span>{{ message }}</span>
+            <button class="flash-close" onclick="this.parentElement.remove()">×</button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="container">
+    <div class="section-header">
+      <h2>🛡️ Insurance Applications Management</h2>
+      <p>Review, approve, or reject crop insurance applications</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header-flex">
+        <div>
+          <h3>All Insurance Applications</h3>
+          <p style="color: #64748b; margin-top: 0.5rem;">Total: <strong>{{ insurances|length }}</strong> applications</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button class="btn btn-outline small" onclick="filterStatus('all')">All</button>
+          <button class="btn btn-outline small" onclick="filterStatus('Pending Approval')">Pending</button>
+          <button class="btn btn-outline small" onclick="filterStatus('Approved')">Approved</button>
+          <button class="btn btn-outline small" onclick="filterStatus('Rejected')">Rejected</button>
+        </div>
+      </div>
+    </div>
+
+    {% if insurances %}
+    <div class="insurance-grid" id="insuranceGrid">
+      {% for ins in insurances %}
+      <div class="insurance-card" data-status="{{ ins.status }}">
+        <div class="insurance-header">
+          <div>
+            <h3 style="color: #3b82f6; margin: 0 0 0.5rem 0;">🛡️ {{ ins.plan_name }}</h3>
+            <div style="color: #6b7280; font-size: 0.9rem;">
+              <strong>{{ ins.farmer_name }}</strong> • {{ ins.crop_type }}
+            </div>
+            <div style="color: #6b7280; font-size: 0.85rem; margin-top: 0.25rem;">
+              Application ID: {{ ins.application_id }}
+            </div>
+          </div>
+          <div>
+            <span class="status-badge status-{{ ins.status.lower().replace(' ', '-') }}">
+              {{ ins.status }}
+            </span>
+          </div>
+        </div>
+
+        <div class="insurance-details">
+          <div class="detail-box">
+            <div class="detail-label">Farmer Name</div>
+            <div class="detail-value">{{ ins.farmer_name }}</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-label">Mobile</div>
+            <div class="detail-value">{{ ins.mobile }}</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-label">Aadhar</div>
+            <div class="detail-value">{{ ins.aadhar }}</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-label">Location</div>
+            <div class="detail-value">{{ ins.location }}</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-label">Crop Type</div>
+            <div class="detail-value">{{ ins.crop_type }}</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-label">Land Size</div>
+            <div class="detail-value">{{ ins.land_size }} acres</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-label">Premium</div>
+            <div class="detail-value" style="color: #3b82f6;">₹{{ ins.premium }}</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-label">Coverage</div>
+            <div class="detail-value" style="color: #10b981;">{{ ins.coverage }}</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-label">Validity Period</div>
+            <div class="detail-value">{{ ins.validity_start }} to {{ ins.validity_end }}</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 1rem; padding: 0.75rem; background: #f8fafc; border-radius: 8px;">
+          <div style="font-size: 0.85rem; color: #6b7280;">
+            Applied on: {{ ins.applied_date.strftime('%d %B %Y at %I:%M %p') if ins.applied_date else 'N/A' }}
+          </div>
+        </div>
+
+        <div class="status-actions">
+          <form method="POST" action="{{ url_for('admin_update_insurance_status', insurance_id=ins.id) }}" style="display: flex; gap: 0.5rem; align-items: center;">
+            <label style="font-weight: 600; color: #374151;">Update Status:</label>
+            <select name="status" class="form-control" style="padding: 0.5rem; border: 2px solid #e5e7eb; border-radius: 8px;">
+              <option value="Pending Approval" {% if ins.status == 'Pending Approval' %}selected{% endif %}>Pending Approval</option>
+              <option value="Approved" {% if ins.status == 'Approved' %}selected{% endif %}>Approved</option>
+              <option value="Rejected" {% if ins.status == 'Rejected' %}selected{% endif %}>Rejected</option>
+              <option value="Active" {% if ins.status == 'Active' %}selected{% endif %}>Active</option>
+            </select>
+            <button type="submit" class="btn btn-primary small">Update</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state-large">
+      <span class="empty-icon-large">🛡️</span>
+      <h3>No Insurance Applications</h3>
+      <p>There are no insurance applications yet.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>🔐 Admin Panel</h4>
+        <p>Karnataka Krishi Mitra Administrative Portal</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 Karnataka Krishi Mitra. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    function filterStatus(status) {
+      const cards = document.querySelectorAll('.insurance-card');
+      cards.forEach(card => {
+        if (status === 'all' || card.getAttribute('data-status') === status) {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+  </script>
+</body>
+</html>

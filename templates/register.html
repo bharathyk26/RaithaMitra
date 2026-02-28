@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>{{ t('register') }} - Krishi Mitra</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .language-switcher-auth {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      display: flex;
+      gap: 0.5rem;
+      z-index: 100;
+    }
+    .lang-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(30, 154, 70, 0.5);
+      color: white;
+      padding: 0.5rem 0.8rem;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+      font-size: 0.9rem;
+    }
+    .lang-btn:hover {
+      background: rgba(30, 154, 70, 0.1);
+    }
+    .lang-btn.active {
+      background: #1e9a46;
+      border-color: #1e9a46;
+    }
+  </style>
+</head>
+<body class="auth-page">
+  <div class="language-switcher-auth">
+    <a href="{{ url_for('set_lang', lang='en') }}" class="lang-btn {% if language == 'en' %}active{% endif %}">English</a>
+    <a href="{{ url_for('set_lang', lang='kn') }}" class="lang-btn {% if language == 'kn' %}active{% endif %}">ಕನ್ನಡ</a>
+  </div>
+  
+  <div class="auth-card">
+    <h2>{{ t('register') }}</h2>
+    <form method="post" action="{{ url_for('register') }}">
+      <div class="form-group">
+        <label>{{ t('full_name') }}</label>
+        <input name="full_name">
+      </div>
+      <div class="form-group">
+        <label>{{ t('username') }}</label>
+        <input name="username" required>
+      </div>
+      <div class="form-group">
+        <label>{{ t('password') }}</label>
+        <input name="password" type="password" required>
+      </div>
+      <div class="form-group">
+        <label>{{ t('confirm_password') }}</label>
+        <input name="password2" type="password" required>
+      </div>
+      <div style="display:flex; gap:0.5rem; align-items:center;">
+        <button class="btn" type="submit">{{ t('register') }}</button>
+        <a class="btn small" href="{{ url_for('index') }}">{{ t('back') }}</a>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

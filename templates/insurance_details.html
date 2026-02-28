@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{ t('insurance_details') }} - {{ t('karnataka_krishi_mitra') }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="logo">
+        <span class="logo-icon">🌾</span>
+        <div>
+          <h1>{{ t('karnataka_krishi_mitra') }}</h1>
+          <p class="tagline">{{ t('digital_farming_companion') }}</p>
+        </div>
+      </div>
+
+      <div class="user-section">
+        <div style="display: flex; gap: 0.5rem; margin-right: 1rem;">
+          <a href="{{ url_for('set_lang', lang='en') }}" style="background: none; border: 2px solid #9ca3af; color: #374151; padding: 0.4rem 0.8rem; border-radius: 5px; cursor: pointer; font-weight: 600; text-decoration: none; {% if language == 'en' %}background: #1e9a46; color: white; border-color: #1e9a46;{% endif %}">EN</a>
+          <a href="{{ url_for('set_lang', lang='kn') }}" style="background: none; border: 2px solid #9ca3af; color: #374151; padding: 0.4rem 0.8rem; border-radius: 5px; cursor: pointer; font-weight: 600; text-decoration: none; {% if language == 'kn' %}background: #1e9a46; color: white; border-color: #1e9a46;{% endif %}">ಕನ್ನಡ</a>
+        </div>
+        <div class="user-dropdown">
+          <button class="user-dropdown-btn" onclick="toggleUserDropdown()">
+            <span class="user-icon">👤</span>
+            <div class="user-details">
+              <div class="user-name">{{ user.full_name if user.full_name else user.username }}</div>
+              <div class="user-role">{{ t('farmer') }}</div>
+            </div>
+            <span class="dropdown-arrow">▼</span>
+          </button>
+          <div class="user-dropdown-menu" id="userDropdownMenu">
+            <div class="dropdown-header">
+              <strong>{{ user.full_name if user.full_name else user.username }}</strong>
+              <p>@{{ user.username }}</p>
+            </div>
+            <a href="{{ url_for('my_account') }}" class="dropdown-item">
+              <span>👤</span> {{ t('my_account') }}
+            </a>
+            <a href="{{ url_for('insurance_details') }}" class="dropdown-item active">
+              <span>🛡️</span> {{ t('insurance_details') }}
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="{{ url_for('logout') }}" class="dropdown-item logout">
+              <span>🚪</span> {{ t('logout') }}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="main-nav">
+      <div class="nav-content">
+        <a href="{{ url_for('index') }}" class="nav-item">
+          <span class="nav-icon">🏠</span>
+          <span>{{ t('home') }}</span>
+        </a>
+        <a href="{{ url_for('crop_application') }}" class="nav-item">
+          <span class="nav-icon">🌱</span>
+          <span>{{ t('crop_applications') }}</span>
+        </a>
+        <a href="{{ url_for('disease_report') }}" class="nav-item">
+          <span class="nav-icon">🩺</span>
+          <span>Report Disease</span>
+        </a>
+        <a href="{{ url_for('apply_insurance') }}" class="nav-item">
+          <span class="nav-icon">🛡️</span>
+          <span>Insurance</span>
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash-message flash-{{ category }}">
+            <span class="flash-icon">
+              {% if category == 'success' %}✓{% elif category == 'danger' %}✕{% elif category == 'warning' %}⚠{% else %}ℹ{% endif %}
+            </span>
+            <span>{{ message }}</span>
+            <button class="flash-close" onclick="this.parentElement.remove()">×</button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="container">
+    <div class="section-header">
+      <h2>🛡️ {{ t('insurance_details') }}</h2>
+      <p>View and manage all your crop insurance applications and policies</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header-flex">
+        <div>
+          <h3 class="card-title">{{ t('insurances') }}</h3>
+          <p style="color: var(--muted); margin-top: 0.5rem;">{{ t('total') }}: <strong>{{ insurances|length }}</strong></p>
+        </div>
+        <a href="{{ url_for('apply_insurance') }}" class="btn btn-primary">
+          <span>📝</span> Apply New Insurance
+        </a>
+      </div>
+    </div>
+
+    {% if insurances %}
+    <div class="policies-list">
+      {% for insurance in insurances %}
+      <div class="policy-card-full">
+        <div class="policy-header-full">
+          <div class="policy-title-section">
+            <h3>{{ insurance.plan_name }}</h3>
+            <p class="policy-id">Application ID: <strong>{{ insurance.application_id }}</strong></p>
+            <p class="applied-date">Applied on: {{ insurance.applied_date }}</p>
+          </div>
+          <div class="policy-status-section">
+            <span class="policy-status status-{{ insurance.status.lower().replace(' ', '-') }}">
+              {{ insurance.status }}
+            </span>
+          </div>
+        </div>
+
+        <div class="policy-info-grid">
+          <div class="info-section">
+            <h4>👨‍🌾 Farmer Details</h4>
+            <div class="policy-detail">
+              <span class="detail-label">Name:</span>
+              <span class="detail-value">{{ insurance.farmer_name }}</span>
+            </div>
+            <div class="policy-detail">
+              <span class="detail-label">Aadhar:</span>
+              <span class="detail-value">{{ insurance.aadhar }}</span>
+            </div>
+            <div class="policy-detail">
+              <span class="detail-label">Mobile:</span>
+              <span class="detail-value">{{ insurance.mobile }}</span>
+            </div>
+            <div class="policy-detail">
+              <span class="detail-label">DOB:</span>
+              <span class="detail-value">{{ insurance.dob }}</span>
+            </div>
+            <div class="policy-detail">
+              <span class="detail-label">Location:</span>
+              <span class="detail-value">{{ insurance.location }}</span>
+            </div>
+            <div class="policy-detail">
+              <span class="detail-label">Pincode:</span>
+              <span class="detail-value">{{ insurance.pincode }}</span>
+            </div>
+          </div>
+
+          <div class="info-section">
+            <h4>🌾 Crop & Coverage Details</h4>
+            <div class="policy-detail">
+              <span class="detail-label">Crop Type:</span>
+              <span class="detail-value">{{ insurance.crop_type }}</span>
+            </div>
+            <div class="policy-detail">
+              <span class="detail-label">Land Size:</span>
+              <span class="detail-value">{{ insurance.land_size }} acres</span>
+            </div>
+            <div class="policy-detail">
+              <span class="detail-label">Coverage Amount:</span>
+              <span class="detail-value highlight">{{ insurance.coverage }}</span>
+            </div>
+            <div class="policy-detail">
+              <span class="detail-label">Premium Paid:</span>
+              <span class="detail-value highlight">₹{{ insurance.premium }}</span>
+            </div>
+            <div class="policy-detail">
+              <span class="detail-label">Valid From:</span>
+              <span class="detail-value">{{ insurance.validity_start }}</span>
+            </div>
+            <div class="policy-detail">
+              <span class="detail-label">Valid Until:</span>
+              <span class="detail-value">{{ insurance.validity_end }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="policy-actions">
+          <button class="btn btn-outline small">📄 Download Policy</button>
+          <button class="btn btn-outline small">📞 Contact Support</button>
+          {% if insurance.status == 'Pending Approval' %}
+          <button class="btn btn-danger small">❌ Cancel Application</button>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state-large">
+      <span class="empty-icon-large">🛡️</span>
+      <h3>No Insurance Policies Yet</h3>
+      <p>You haven't applied for any crop insurance yet. Protect your crops with our comprehensive insurance plans.</p>
+      <a href="{{ url_for('apply_insurance') }}" class="btn btn-primary btn-large">
+        <span>📝</span> Apply for Insurance Now
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>🌾 Karnataka Krishi Mitra</h4>
+        <p>Empowering farmers with digital solutions for better agricultural practices and market access.</p>
+      </div>
+      <div class="footer-section">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="{{ url_for('index') }}">Home</a></li>
+          <li><a href="{{ url_for('my_account') }}">My Account</a></li>
+          <li><a href="{{ url_for('apply_insurance') }}">Apply Insurance</a></li>
+          <li><a href="{{ url_for('insurance_details') }}">Insurance Details</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Contact Us</h4>
+        <p>📧 Email: support@krishimitra.gov.in</p>
+        <p>📞 Helpline: 1800-123-4567</p>
+        <p>🕒 Mon-Sat: 9:00 AM - 6:00 PM</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 Karnataka Krishi Mitra. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    function toggleUserDropdown() {
+      const menu = document.getElementById('userDropdownMenu');
+      menu.classList.toggle('show');
+    }
+
+    window.addEventListener('click', function(e) {
+      if (!e.target.matches('.user-dropdown-btn') && !e.target.closest('.user-dropdown-btn')) {
+        const dropdown = document.getElementById('userDropdownMenu');
+        if (dropdown && dropdown.classList.contains('show')) {
+          dropdown.classList.remove('show');
+        }
+      }
+    });
+  </script>
+</body>
+</html>

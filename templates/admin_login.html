@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>{{ t('admin_panel') }} {{ t('login') }} - Karnataka Krishi Mitra</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .admin-login-page {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    
+    .admin-login-container {
+      background: white;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+      width: 100%;
+      position: relative;
+    }
+
+    .language-switcher-admin-login {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      display: flex;
+      gap: 0.5rem;
+      z-index: 10;
+    }
+
+    .lang-btn-admin-login {
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      color: white;
+      padding: 0.4rem 0.8rem;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+      font-size: 0.85rem;
+    }
+
+    .lang-btn-admin-login:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .lang-btn-admin-login.active {
+      background: white;
+      color: #1e3a8a;
+    }
+    
+    .admin-login-header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+      color: white;
+      padding: 3rem 2rem;
+      text-align: center;
+    }
+    
+    .admin-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+    
+    .admin-login-header h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .admin-login-form {
+      padding: 3rem 2rem;
+    }
+  </style>
+</head>
+<body class="admin-login-page">
+  <div class="admin-login-container">
+    <div class="language-switcher-admin-login">
+      <a href="{{ url_for('set_lang', lang='en') }}" class="lang-btn-admin-login {% if language == 'en' %}active{% endif %}">EN</a>
+      <a href="{{ url_for('set_lang', lang='kn') }}" class="lang-btn-admin-login {% if language == 'kn' %}active{% endif %}">ಕನ್ನಡ</a>
+    </div>
+
+    <div class="admin-login-header">
+      <div class="admin-icon">🔐</div>
+      <h1>{{ t('admin_panel') }}</h1>
+      <p>{{ t('karnataka_krishi_mitra') }}</p>
+    </div>
+
+    <div class="admin-login-form">
+      <div class="auth-header">
+        <h2>{{ t('administrator') }} {{ t('login') }}</h2>
+        <p>{{ t('admin_panel') }} {{ t('login') }}</p>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-list">
+            {% for cat, msg in messages %}
+              <div class="flash flash-{{ cat }}">
+                <span class="flash-icon">
+                  {% if cat == 'success' %}✓{% elif cat == 'danger' %}✕{% elif cat == 'warning' %}⚠{% else %}ℹ{% endif %}
+                </span>
+                {{ msg }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <form method="post" action="{{ url_for('admin_login') }}">
+        <div class="form-group">
+          <label for="username">
+            <span class="label-icon">👤</span> {{ t('username') }}
+          </label>
+          <input 
+            type="text" 
+            id="username" 
+            name="username" 
+            placeholder="{{ t('username') }}" 
+            required 
+            autofocus
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password">
+            <span class="label-icon">🔑</span> {{ t('password') }}
+          </label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            placeholder="{{ t('password') }}" 
+            required
+          >
+        </div>
+
+        <button class="btn btn-primary btn-full" type="submit">
+          <span>🔐</span> {{ t('administrator') }} {{ t('login') }}
+        </button>
+      </form>
+
+      <div class="auth-divider">
+        <span>{{ t('farmer') }}?</span>
+      </div>
+
+      <a href="{{ url_for('login') }}" class="btn btn-outline btn-full">
+        <span>🌾</span> {{ t('farmer') }} {{ t('login') }}
+      </a>
+
+      <div class="auth-info">
+        <p><strong>Demo Admin Credentials:</strong></p>
+        <p>{{ t('username') }}: <code>admin</code> | {{ t('password') }}: <code>admin123</code></p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{ t('admin_panel') }} - {{ t('karnataka_krishi_mitra') }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .chart-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .chart-card h3 {
+            color: #1e3a8a;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .language-switcher-admin {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: auto;
+        }
+
+        .lang-btn-admin {
+            background: none;
+            border: 2px solid #9ca3af;
+            color: #374151;
+            padding: 0.4rem 0.8rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .lang-btn-admin:hover {
+            background: #f3f4f6;
+            border-color: #1e3a8a;
+        }
+
+        .lang-btn-admin.active {
+            background: #1e3a8a;
+            color: white;
+            border-color: #1e3a8a;
+        }
+    </style>
+</head>
+<body>
+  <header class="admin-header">
+    <div class="header-content">
+      <div class="logo">
+        <span class="logo-icon">📊</span>
+        <div>
+          <h1>{{ t('admin_panel') }}</h1>
+          <p class="tagline">{{ t('karnataka_krishi_mitra') }}</p>
+        </div>
+      </div>
+
+      <div class="user-section">
+        <div class="user-info">
+          <span class="user-icon">👨‍💼</span>
+          <div>
+            <div class="user-name">{{ admin.full_name }}</div>
+            <div class="user-role">{{ t('administrator') }}</div>
+          </div>
+        </div>
+        <div class="language-switcher-admin">
+          <a href="{{ url_for('set_lang', lang='en') }}" class="lang-btn-admin {% if language == 'en' %}active{% endif %}">EN</a>
+          <a href="{{ url_for('set_lang', lang='kn') }}" class="lang-btn-admin {% if language == 'kn' %}active{% endif %}">ಕನ್ನಡ</a>
+        </div>
+        <a href="{{ url_for('admin_logout') }}" class="btn-logout">
+          <span>🚪</span> {{ t('logout') }}
+        </a>
+      </div>
+    </div>
+
+    <nav class="main-nav">
+      <div class="nav-content">
+        <a href="{{ url_for('admin_dashboard') }}" class="nav-item active">
+          <span class="nav-icon">📊</span>
+          <span>{{ t('dashboard') }}</span>
+        </a>
+        <a href="{{ url_for('admin_users') }}" class="nav-item">
+          <span class="nav-icon">👥</span>
+          <span>{{ t('users') }}</span>
+        </a>
+        <a href="{{ url_for('admin_crop_limits') }}" class="nav-item">
+          <span class="nav-icon">📈</span>
+          <span>{{ t('crop_limits') }}</span>
+        </a>
+        <a href="{{ url_for('admin_disease_reports') }}" class="nav-item">
+          <span class="nav-icon">🩺</span>
+          <span>{{ t('disease_reports') }}</span>
+        </a>
+        <a href="{{ url_for('admin_insurances') }}" class="nav-item">
+          <span class="nav-icon">🛡️</span>
+          <span>{{ t('insurances') }}</span>
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="section-header">
+      <h2>📊 {{ t('dashboard') }}</h2>
+      <p>System overview and analytics</p>
+    </div>
+
+    <div class="card-grid">
+      <div class="card stat-card-admin">
+        <div class="card-icon">👥</div>
+        <div class="stat-number">{{ stats.total_users }}</div>
+        <div class="stat-label">{{ t('total_users') }}</div>
+      </div>
+      <div class="card stat-card-admin">
+        <div class="card-icon">🌾</div>
+        <div class="stat-number">{{ stats.total_applications }}</div>
+        <div class="stat-label">{{ t('total_applications') }}</div>
+      </div>
+      <div class="card stat-card-admin">
+        <div class="card-icon">🛡️</div>
+        <div class="stat-number">{{ stats.total_insurances }}</div>
+        <div class="stat-label">{{ t('total_insurances') }}</div>
+      </div>
+      <div class="card stat-card-admin">
+        <div class="card-icon">⏳</div>
+        <div class="stat-number">{{ stats.pending_insurances }}</div>
+        <div class="stat-label">{{ t('pending_approvals') }}</div>
+      </div>
+      <div class="card stat-card-admin">
+        <div class="card-icon">🩺</div>
+        <div class="stat-number">{{ stats.pending_disease_reports }}</div>
+        <div class="stat-label">{{ t('disease_reports') }} {{ t('pending') }}</div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="chart-card">
+        <h3>📊 Crop Demand Status</h3>
+        <canvas id="cropDemandChart"></canvas>
+      </div>
+      
+      <div class="chart-card">
+        <h3>📈 Application Trends</h3>
+        <canvas id="applicationTrendsChart"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-card" style="margin-top: 2rem;">
+      <h3>🌾 Crop Applications vs Limits</h3>
+      <canvas id="cropLimitsChart"></canvas>
+    </div>
+
+    <div class="section-header" style="margin-top: 3rem;">
+      <h3>⚡ Quick Actions</h3>
+    </div>
+
+    <div class="quick-actions">
+      <div class="action-card" data-href="{{ url_for('admin_crop_limits') }}">
+        <div class="action-icon">📈</div>
+        <h3>Manage Crop Limits</h3>
+        <p>Set daily limits and base prices</p>
+      </div>
+
+      <div class="action-card" data-href="{{ url_for('admin_disease_reports') }}">
+        <div class="action-icon">🩺</div>
+        <h3>Disease Reports</h3>
+        <p>Review and respond to farmers</p>
+      </div>
+
+      <div class="action-card" data-href="{{ url_for('admin_insurances') }}">
+        <div class="action-icon">🛡️</div>
+        <h3>Insurance Approvals</h3>
+        <p>Process insurance applications</p>
+      </div>
+
+      <div class="action-card" data-href="{{ url_for('admin_users') }}">
+        <div class="action-icon">👥</div>
+        <h3>User Management</h3>
+        <p>View and manage farmers</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>📊 Admin Panel</h4>
+        <p>Karnataka Krishi Mitra Administrative Portal</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 Karnataka Krishi Mitra. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Load crop statistics and create charts
+    async function loadDashboardData() {
+      try {
+        const response = await fetch('/api/admin/crop-stats');
+        const result = await response.json();
+        
+        if (result.success) {
+          createCropDemandChart(result.data);
+          createCropLimitsChart(result.data);
+          createApplicationTrendsChart();
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
+    }
+
+    function createCropDemandChart(data) {
+      const ctx = document.getElementById('cropDemandChart');
+      
+      const labels = data.slice(0, 6).map(d => d.crop_name);
+      const supplyPercentages = data.slice(0, 6).map(d => 
+        (parseFloat(d.current_applications_tonnes) / parseFloat(d.daily_limit_tonnes)) * 100
+      );
+      
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: supplyPercentages,
+            backgroundColor: [
+              '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.label + ': ' + context.parsed.toFixed(1) + '%';
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function createCropLimitsChart(data) {
+      const ctx = document.getElementById('cropLimitsChart');
+      
+      const labels = data.slice(0, 10).map(d => d.crop_name);
+      const currentData = data.slice(0, 10).map(d => parseFloat(d.current_applications_tonnes));
+      const limitData = data.slice(0, 10).map(d => parseFloat(d.daily_limit_tonnes));
+      
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Current Applications (tonnes)',
+              data: currentData,
+              backgroundColor: '#3b82f6'
+            },
+            {
+              label: 'Daily Limit (tonnes)',
+              data: limitData,
+              backgroundColor: '#10b981'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Tonnes'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function createApplicationTrendsChart() {
+      const ctx = document.getElementById('applicationTrendsChart');
+      
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          datasets: [{
+            label: 'Applications',
+            data: [12, 19, 15, 22, 18, 25, 20],
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            tension: 0.4,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    // Load data on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      loadDashboardData();
+      
+      // Add click handlers for action cards
+      document.querySelectorAll('.action-card[data-href]').forEach(card => {
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', function() {
+          window.location.href = this.getAttribute('data-href');
+        });
+      });
+    });
+  </script>
+</body>
+</html>

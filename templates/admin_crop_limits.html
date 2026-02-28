@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Crop Limits Management - Admin Panel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .admin-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+        
+        .limits-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .limits-table thead {
+            background: #f8fafc;
+        }
+        
+        .limits-table th, .limits-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .limits-table tr:hover {
+            background: #f9fafb;
+        }
+        
+        .supply-indicator {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        .supply-low {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .supply-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .supply-high {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #6b7280;
+            transition: color 0.3s;
+        }
+        
+        .modal-close:hover {
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+  <header class="admin-header">
+    <div class="header-content">
+      <div class="logo">
+        <span class="logo-icon">📊</span>
+        <div>
+          <h1>Admin Panel</h1>
+          <p class="tagline">Karnataka Krishi Mitra</p>
+        </div>
+      </div>
+
+      <div class="user-section">
+        <div class="user-info">
+          <span class="user-icon">👨‍💼</span>
+          <div>
+            <div class="user-name">{{ admin.full_name }}</div>
+            <div class="user-role">Administrator</div>
+          </div>
+        </div>
+        <a href="{{ url_for('admin_logout') }}" class="btn-logout">
+          <span>🚪</span>
+          Logout
+        </a>
+      </div>
+    </div>
+
+    <nav class="main-nav">
+      <div class="nav-content">
+        <a href="{{ url_for('admin_dashboard') }}" class="nav-item">
+          <span class="nav-icon">📊</span>
+          <span>Dashboard</span>
+        </a>
+        <a href="{{ url_for('admin_users') }}" class="nav-item">
+          <span class="nav-icon">👥</span>
+          <span>Users</span>
+        </a>
+        <a href="{{ url_for('admin_crop_limits') }}" class="nav-item active">
+          <span class="nav-icon">📈</span>
+          <span>Crop Limits</span>
+        </a>
+        <a href="{{ url_for('admin_crop_applications') }}" class="nav-item">
+          <span class="nav-icon">🌾</span>
+          <span>Applications</span>
+        </a>
+        <a href="{{ url_for('admin_disease_reports') }}" class="nav-item">
+          <span class="nav-icon">🩺</span>
+          <span>Disease Reports</span>
+        </a>
+        <a href="{{ url_for('admin_insurances') }}" class="nav-item">
+          <span class="nav-icon">🛡️</span>
+          <span>Insurances</span>
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash-message flash-{{ category }}">
+            <span class="flash-icon">
+              {% if category == 'success' %}✔{% elif category == 'danger' %}✕{% elif category == 'warning' %}⚠{% else %}ℹ{% endif %}
+            </span>
+            <span>{{ message }}</span>
+            <button class="flash-close" onclick="this.parentElement.remove()">×</button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="container">
+    <div class="section-header">
+      <h2>📈 Crop Limits Management</h2>
+      <p>Configure daily market demand limits and base prices for each crop</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header-flex">
+        <div>
+          <h3>Crop Limits Configuration</h3>
+          <p style="color: #6b7280; margin-top: 0.5rem;">Set and manage market demand limits for optimal pricing</p>
+        </div>
+        <form method="POST" action="{{ url_for('admin_reset_crop_limits') }}" style="display: inline;">
+          <button type="submit" class="btn btn-outline" onclick="return confirm('⚠️ This will reset ALL crop application counters to zero. Continue?')">
+            <span>🔄</span> Reset All Limits
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 1.5rem; padding: 0; overflow: hidden;">
+      <table class="limits-table">
+        <thead>
+          <tr>
+            <th>🌾 Crop Name</th>
+            <th>📊 Daily Limit</th>
+            <th>📦 Current Applications</th>
+            <th>📈 Supply Status</th>
+            <th>💰 Base Price</th>
+            <th>🎯 Status</th>
+            <th>⚙️ Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for crop in crop_limits %}
+          <tr>
+            <td><strong>{{ crop.crop_name }}</strong></td>
+            <td>{{ crop.daily_limit_tonnes }} tonnes</td>
+            <td>{{ crop.current_applications_tonnes|round(2) }} tonnes</td>
+            <td>
+              {% set supply_percent = (crop.current_applications_tonnes / crop.daily_limit_tonnes * 100) %}
+              <span class="supply-indicator {% if supply_percent < 70 %}supply-low{% elif supply_percent < 90 %}supply-medium{% else %}supply-high{% endif %}">
+                {{ supply_percent|round(1) }}%
+              </span>
+            </td>
+            <td>₹{{ crop.base_price_per_kg }}/kg</td>
+            <td>
+              <span class="status-badge status-{{ crop.status.lower() }}">{{ crop.status }}</span>
+            </td>
+            <td>
+              <button class="btn btn-primary btn-small" data-id="{{ crop.id }}" data-name="{{ crop.crop_name }}" data-limit="{{ crop.daily_limit_tonnes }}" data-price="{{ crop.base_price_per_kg }}" data-status="{{ crop.status }}" onclick="editCropHandler(this)">
+                Edit
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top: 2rem; background: #dbeafe; border-left: 4px solid #3b82f6;">
+      <h4 style="color: #1e40af; margin: 0 0 1rem 0;">ℹ️ How It Works</h4>
+      <ul style="line-height: 2; color: #1e3a8a;">
+        <li><strong>Daily Limit:</strong> Maximum tonnes that can be applied per day</li>
+        <li><strong>Supply < 70%:</strong> High demand - Price increased by 10%</li>
+        <li><strong>Supply 70-90%:</strong> Normal demand - Base price</li>
+        <li><strong>Supply 90-100%:</strong> Moderate supply - Price reduced by 5%</li>
+        <li><strong>Supply > 100%:</strong> Oversupply - Price reduced by 20%, applications closed</li>
+        <li><strong>Status CLOSED:</strong> No new applications accepted</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Edit Crop Limit</h2>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      
+      <form id="editForm" method="POST">
+        <input type="hidden" id="cropId" name="crop_id">
+        
+        <div class="form-group">
+          <label>Crop Name</label>
+          <input type="text" id="cropName" readonly style="background: #f3f4f6; cursor: not-allowed;">
+        </div>
+        
+        <div class="form-group">
+          <label for="dailyLimit">Daily Limit (tonnes) *</label>
+          <input type="number" id="dailyLimit" name="daily_limit" step="0.01" min="0" required placeholder="e.g., 3000">
+        </div>
+        
+        <div class="form-group">
+          <label for="basePrice">Base Price (₹/kg) *</label>
+          <input type="number" id="basePrice" name="base_price" step="0.01" min="0" required placeholder="e.g., 45.00">
+        </div>
+        
+        <div class="form-group">
+          <label for="status">Status *</label>
+          <select id="status" name="status" required>
+            <option value="OPEN">OPEN - Accept Applications</option>
+            <option value="CLOSED">CLOSED - Block Applications</option>
+          </select>
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update Limit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>📊 Admin Panel</h4>
+        <p>Karnataka Krishi Mitra Administrative Portal</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 Karnataka Krishi Mitra. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    function editCropHandler(button) {
+      const id = button.getAttribute('data-id');
+      const name = button.getAttribute('data-name');
+      const limit = button.getAttribute('data-limit');
+      const price = button.getAttribute('data-price');
+      const status = button.getAttribute('data-status');
+      editCrop(id, name, limit, price, status);
+    }
+
+    function editCrop(id, name, limit, price, status) {
+      document.getElementById('cropId').value = id;
+      document.getElementById('cropName').value = name;
+      document.getElementById('dailyLimit').value = limit;
+      document.getElementById('basePrice').value = price;
+      document.getElementById('status').value = status;
+      document.getElementById('editForm').action = '/admin/crop-limit/' + id + '/update';
+      document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+      const modal = document.getElementById('editModal');
+      if (event.target == modal) {
+        closeModal();
+      }
+    };
+  </script>
+</body>
+</html>

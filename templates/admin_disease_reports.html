@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Disease Reports - Admin Panel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .report-card {
+            border-left: 4px solid #10b981;
+        }
+        .report-card[data-status="Pending"] {
+            border-left-color: #f59e0b;
+        }
+    </style>
+</head>
+<body>
+  <header class="admin-header">
+    <div class="header-content">
+      <div class="logo">
+        <span class="logo-icon">📊</span>
+        <div>
+          <h1>Admin Panel</h1>
+          <p class="tagline">Karnataka Krishi Mitra</p>
+        </div>
+      </div>
+      <div class="user-section">
+        <div class="user-info">
+          <span class="user-icon">👨‍💼</span>
+          <div>
+            <div class="user-name">{{ admin.full_name }}</div>
+            <div class="user-role">Administrator</div>
+          </div>
+        </div>
+        <a href="{{ url_for('admin_logout') }}" class="btn-logout">
+          <span>🚪</span> Logout
+        </a>
+      </div>
+    </div>
+    <nav class="main-nav">
+      <div class="nav-content">
+        <a href="{{ url_for('admin_dashboard') }}" class="nav-item">
+          <span class="nav-icon">📊</span>
+          <span>Dashboard</span>
+        </a>
+        <a href="{{ url_for('admin_crop_limits') }}" class="nav-item">
+          <span class="nav-icon">📈</span>
+          <span>Crop Limits</span>
+        </a>
+        <a href="{{ url_for('admin_disease_reports') }}" class="nav-item active">
+          <span class="nav-icon">🩺</span>
+          <span>Disease Reports</span>
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="section-header">
+      <h2>🩺 Disease Reports Management</h2>
+      <p>Review and respond to farmer disease reports</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header-flex">
+        <div>
+          <h3>All Disease Reports</h3>
+          <p style="color: #6b7280; margin-top: 0.5rem;">Total: <strong>{{ reports|length }}</strong> reports</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-outline" onclick="filterReports('all')">All</button>
+          <button class="btn btn-outline" onclick="filterReports('Pending')">Pending</button>
+          <button class="btn btn-outline" onclick="filterReports('Responded')">Responded</button>
+        </div>
+      </div>
+    </div>
+
+    {% if reports %}
+    <div id="reportsGrid" style="display: grid; gap: 1.5rem; margin-top: 2rem;">
+      {% for report in reports %}
+      <div class="card report-card" data-status="{{ report.status }}">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+          <div>
+            <h3 style="color: #3b82f6; margin: 0 0 0.5rem 0;">{{ report.crop_name }} Disease</h3>
+            <p style="color: #6b7280; margin: 0;">Report ID: <strong>{{ report.report_id }}</strong></p>
+            <p style="color: #6b7280; margin: 0.25rem 0;">Farmer: <strong>{{ report.farmer_name }}</strong></p>
+          </div>
+          <span class="status-badge status-{{ report.status.lower() }}">{{ report.status }}</span>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem;">
+          {% if report.photo_path %}
+          <img src="{{ url_for('static', filename=report.photo_path) }}" style="width: 100%; border-radius: 8px;">
+          {% else %}
+          <div style="background: #f3f4f6; padding: 2rem; border-radius: 8px; text-align: center;">No photo</div>
+          {% endif %}
+          
+          <div>
+            <p style="color: #374151; margin-bottom: 1rem;">{{ report.disease_description }}</p>
+            <div style="font-size: 0.9rem; color: #6b7280;">
+              <p>📍 {{ report.location }}</p>
+              <p>📞 {{ report.mobile }}</p>
+              <p>📅 {{ report.created_at.strftime('%d %b %Y') if report.created_at else 'N/A' }}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 2px solid #f3f4f6;">
+          <a href="{{ url_for('admin_disease_report_detail', report_id=report.id) }}" class="btn btn-primary">
+            {% if report.status == 'Pending' %}Respond to Report{% else %}View Response{% endif %}
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state-large">
+      <span class="empty-icon-large">🩺</span>
+      <h3>No Disease Reports</h3>
+      <p>No disease reports have been submitted yet.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <script>
+    function filterReports(status) {
+      const reports = document.querySelectorAll('[data-status]');
+      reports.forEach(report => {
+        if (status === 'all' || report.getAttribute('data-status') === status) {
+          report.style.display = '';
+        } else {
+          report.style.display = 'none';
+        }
+      });
+    }
+  </script>
+</body>
+</html>

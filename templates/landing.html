@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Karnataka Krishi Mitra - Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .landing-page {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e9a46 0%, #10b981 100%);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .landing-header {
+            background: linear-gradient(135deg, #1e9a46 0%, #10b981 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .landing-header h1 {
+            font-size: 2.5rem;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .landing-header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .landing-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .login-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .login-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-icon {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .login-card h2 {
+            color: #1e9a46;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+
+        .login-card p {
+            color: #6b7280;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, #1e9a46 0%, #10b981 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .login-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(30, 154, 70, 0.4);
+        }
+
+        .features {
+            color: white;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .feature-list {
+            text-align: left;
+            margin-top: 1rem;
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 0.5rem 0;
+            opacity: 0.9;
+        }
+
+        .feature-list li:before {
+            content: "✓ ";
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .login-options {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .landing-header h1 {
+                font-size: 1.8rem;
+            }
+
+            .login-icon {
+                font-size: 3rem;
+            }
+        }
+
+        .language-switcher {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 0.5rem;
+            z-index: 100;
+        }
+
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .lang-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .lang-btn.active {
+            background: white;
+            color: #1e9a46;
+        }
+    </style>
+</head>
+<body class="landing-page">
+    <!-- Language Switcher -->
+    <div class="language-switcher">
+        <a href="{{ url_for('set_lang', lang='en') }}" class="lang-btn {% if language == 'en' %}active{% endif %}">English</a>
+        <a href="{{ url_for('set_lang', lang='kn') }}" class="lang-btn {% if language == 'kn' %}active{% endif %}">ಕನ್ನಡ</a>
+    </div>
+
+    <div class="landing-header">
+        <h1>🌾 {{ t('karnataka_krishi_mitra') }}</h1>
+        <p>{{ t('digital_farming_companion') }}</p>
+    </div>
+
+    <div class="landing-container">
+        <div class="login-options">
+            <!-- Farmer Login -->
+            <div class="login-card">
+                <div class="login-icon">🌱</div>
+                <h2>{{ t('farmer') }} {{ t('login') }}</h2>
+                <p>Access your personal farming dashboard, crop applications, insurance details, and market updates.</p>
+                <a href="{{ url_for('login') }}" class="login-btn">{{ t('farmer') }} {{ t('login') }}</a>
+                <div class="features">
+                    <p><strong>{{ t('dont_have_account') }}</strong></p>
+                    <a href="{{ url_for('register') }}" style="color: white; text-decoration: underline;">{{ t('register_here') }}</a>
+                </div>
+                <div class="features">
+                    <ul class="feature-list">
+                        <li>Crop Planning & Applications</li>
+                        <li>Crop Insurance Coverage</li>
+                        <li>Weather & Market Updates</li>
+                        <li>Digital Marketplace</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Admin Login -->
+            <div class="login-card">
+                <div class="login-icon">🔐</div>
+                <h2>{{ t('admin_panel') }}</h2>
+                <p>Manage the platform, review applications, handle insurance claims, and monitor system statistics.</p>
+                <a href="{{ url_for('admin_login') }}" class="login-btn">{{ t('admin_panel') }}</a>
+                <div class="features">
+                    <p><strong>{{ t('administrator') }} {{ t('login') }}</strong></p>
+                </div>
+                <div class="features">
+                    <ul class="feature-list">
+                        <li>User Management</li>
+                        <li>Application Reviews</li>
+                        <li>Insurance Management</li>
+                        <li>System Analytics</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer style="background: rgba(0, 0, 0, 0.2); color: white; padding: 2rem; text-align: center; margin-top: auto;">
+        <p>&copy; 2024 {{ t('karnataka_krishi_mitra') }}. All rights reserved. | A Government of Karnataka Initiative</p>
+        <p style="margin-top: 0.5rem; opacity: 0.8;">For support: support@krishimitra.gov.in | 1800-123-4567</p>
+    </footer>
+</body>
+</html>

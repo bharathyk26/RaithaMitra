@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{ t('user_management') }} - {{ t('admin_panel') }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .admin-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+        
+        .users-table-container {
+            overflow-x: auto;
+            margin-top: 1.5rem;
+        }
+        
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .users-table thead {
+            background: #f8fafc;
+        }
+        
+        .users-table th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #1e3a8a;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .users-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .users-table tr:hover {
+            background: #f8fafc;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #3b82f6;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        
+        .profile-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .badge-complete {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .badge-incomplete {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-small {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+  <header class="admin-header">
+    <div class="header-content">
+      <div class="logo">
+        <span class="logo-icon">🔐</span>
+        <div>
+          <h1>{{ t('admin_panel') }}</h1>
+          <p class="tagline">{{ t('karnataka_krishi_mitra') }}</p>
+        </div>
+      </div>
+
+      <div class="user-section">
+        <div style="display: flex; gap: 0.5rem; margin-right: 1rem;">
+          <a href="{{ url_for('set_lang', lang='en') }}" class="lang-switch-btn {% if language == 'en' %}active{% endif %}">EN</a>
+          <a href="{{ url_for('set_lang', lang='kn') }}" class="lang-switch-btn {% if language == 'kn' %}active{% endif %}">ಕನ್ನಡ</a>
+        </div>
+        <div class="user-info">
+          <span class="user-icon">👨‍💼</span>
+          <div>
+            <div class="user-name">{{ admin.full_name }}</div>
+            <div class="user-role">{{ t('administrator') }}</div>
+          </div>
+        </div>
+        <a href="{{ url_for('admin_logout') }}" class="btn-logout">
+          <span>🚪</span>
+          {{ t('logout') }}
+        </a>
+      </div>
+    </div>
+
+    <nav class="main-nav">
+      <div class="nav-content">
+        <a href="{{ url_for('admin_dashboard') }}" class="nav-item">
+          <span class="nav-icon">📊</span>
+          <span>{{ t('dashboard') }}</span>
+        </a>
+        <a href="{{ url_for('admin_users') }}" class="nav-item active">
+          <span class="nav-icon">👥</span>
+          <span>{{ t('users') }}</span>
+        </a>
+        <a href="{{ url_for('admin_crop_applications') }}" class="nav-item">
+          <span class="nav-icon">🌾</span>
+          <span>{{ t('crop_applications') }}</span>
+        </a>
+        <a href="{{ url_for('admin_insurances') }}" class="nav-item">
+          <span class="nav-icon">🛡️</span>
+          <span>{{ t('insurances') }}</span>
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash-message flash-{{ category }}">
+            <span class="flash-icon">
+              {% if category == 'success' %}✓{% elif category == 'danger' %}✕{% elif category == 'warning' %}⚠{% else %}ℹ{% endif %}
+            </span>
+            <span>{{ message }}</span>
+            <button class="flash-close" onclick="this.parentElement.remove()">×</button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="container">
+    <div class="section-header">
+      <h2>👥 User Management</h2>
+      <p>Manage all registered farmers on the platform</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header-flex">
+        <div>
+          <h3>Registered Farmers</h3>
+          <p style="color: #64748b; margin-top: 0.5rem;">Total: <strong>{{ users|length }}</strong> users</p>
+        </div>
+        <div class="search-container" style="max-width: 400px;">
+          <input type="text" class="search-bar" id="userSearch" placeholder="Search users..." onkeyup="filterUsers()">
+          <span class="search-icon">🔍</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card users-table-container">
+      <table class="users-table" id="usersTable">
+        <thead>
+          <tr>
+            <th>Farmer</th>
+            <th>Contact</th>
+            <th>Location</th>
+            <th>Land Size</th>
+            <th>Profile</th>
+            <th>Joined</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr>
+            <td>
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div class="user-avatar">
+                  {{ user.full_name[0] if user.full_name else user.username[0] }}
+                </div>
+                <div>
+                  <div style="font-weight: 600;">{{ user.full_name if user.full_name else user.username }}</div>
+                  <div style="font-size: 0.85rem; color: #64748b;">@{{ user.username }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div>{{ user.mobile if user.mobile else 'Not provided' }}</div>
+              <div style="font-size: 0.85rem; color: #64748b;">{{ user.aadhar if user.aadhar else 'No Aadhar' }}</div>
+            </td>
+            <td>{{ user.location if user.location else 'Not provided' }}</td>
+            <td>{{ user.land_size if user.land_size else '0' }} acres</td>
+            <td>
+              {% if user.profile_completed %}
+              <span class="profile-badge badge-complete">✓ Complete</span>
+              {% else %}
+              <span class="profile-badge badge-incomplete">⚠ Incomplete</span>
+              {% endif %}
+            </td>
+            <td style="font-size: 0.9rem; color: #64748b;">
+              {{ user.created_at.strftime('%d %b %Y') if user.created_at else 'N/A' }}
+            </td>
+            <td>
+              <div class="action-buttons">
+                <a href="{{ url_for('admin_user_detail', user_id=user.id) }}" class="btn btn-primary btn-small">View</a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>🔐 Admin Panel</h4>
+        <p>Karnataka Krishi Mitra Administrative Portal</p>
+      </div>
+      <div class="footer-section">
+        <h4>Contact Support</h4>
+        <p>📧 admin@krishimitra.gov.in</p>
+        <p>📞 1800-123-4567 (Ext: 101)</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 Karnataka Krishi Mitra. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    function filterUsers() {
+      const input = document.getElementById('userSearch');
+      const filter = input.value.toLowerCase();
+      const table = document.getElementById('usersTable');
+      const rows = table.getElementsByTagName('tr');
+
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(filter) ? '' : 'none';
+      }
+    }
+  </script>
+</body>
+</html>

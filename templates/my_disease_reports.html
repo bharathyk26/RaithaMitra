@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{ t('my_disease_reports') }} - {{ t('karnataka_krishi_mitra') }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .report-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border-left: 6px solid #3b82f6;
+        }
+        
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f3f4f6;
+        }
+        
+        .report-status {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-responded {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .report-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 12px;
+            margin: 1rem 0;
+        }
+        
+        .admin-response-box {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-left: 4px solid #10b981;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 1.5rem;
+        }
+        
+        .medicine-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            border: 2px solid #10b981;
+        }
+    </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="logo">
+        <span class="logo-icon">🌾</span>
+        <div>
+          <h1>{{ t('karnataka_krishi_mitra') }}</h1>
+          <p class="tagline">{{ t('digital_farming_companion') }}</p>
+        </div>
+      </div>
+
+      <div class="user-section">
+        <div style="display: flex; gap: 0.5rem; margin-right: 1rem;">
+          <a href="{{ url_for('set_lang', lang='en') }}" class="lang-switch-btn {% if language == 'en' %}active{% endif %}">EN</a>
+          <a href="{{ url_for('set_lang', lang='kn') }}" class="lang-switch-btn {% if language == 'kn' %}active{% endif %}">ಕನ್ನಡ</a>
+        </div>
+        <div class="user-dropdown">
+          <button class="user-dropdown-btn" onclick="toggleUserDropdown()">
+            <span class="user-icon">👤</span>
+            <div class="user-details">
+              <div class="user-name">{{ user.full_name }}</div>
+              <div class="user-role">{{ t('farmer') }}</div>
+            </div>
+            <span class="dropdown-arrow">▼</span>
+          </button>
+          <div class="user-dropdown-menu" id="userDropdownMenu">
+            <div class="dropdown-header">
+              <strong>{{ user.full_name }}</strong>
+              <p>@{{ user.username }}</p>
+            </div>
+            <a href="{{ url_for('my_account') }}" class="dropdown-item">
+              <span>👤</span> {{ t('my_account') }}
+            </a>
+            <a href="{{ url_for('disease_report') }}" class="dropdown-item">
+              <span>🩺</span> {{ t('report_disease') }}
+            </a>
+            <a href="{{ url_for('my_disease_reports') }}" class="dropdown-item active">
+              <span>📋</span> {{ t('my_disease_reports') }}
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="{{ url_for('logout') }}" class="dropdown-item logout">
+              <span>🚪</span> {{ t('logout') }}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="main-nav">
+      <div class="nav-content">
+        <a href="{{ url_for('index') }}" class="nav-item">
+          <span class="nav-icon">🏠</span>
+          <span>{{ t('home') }}</span>
+        </a>
+        <a href="{{ url_for('crop_application') }}" class="nav-item">
+          <span class="nav-icon">🌱</span>
+          <span>{{ t('crop_applications') }}</span>
+        </a>
+        <a href="{{ url_for('disease_report') }}" class="nav-item">
+          <span class="nav-icon">🩺</span>
+          <span>Report Disease</span>
+        </a>
+        <a href="{{ url_for('apply_insurance') }}" class="nav-item">
+          <span class="nav-icon">🛡️</span>
+          <span>Insurance</span>
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="section-header">
+      <h2>📋 {{ t('my_disease_reports') }}</h2>
+      <p>Track your disease reports and expert recommendations</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header-flex">
+        <div>
+          <h3>{{ t('disease_reports') }}</h3>
+          <p style="color: #6b7280; margin-top: 0.5rem;">{{ t('total') }}: <strong>{{ reports|length }}</strong> reports</p>
+        </div>
+        <a href="{{ url_for('disease_report') }}" class="btn btn-primary">
+          <span>➕</span> {{ t('report_disease') }}
+        </a>
+      </div>
+    </div>
+
+    {% if reports %}
+      {% for report in reports %}
+      <div class="report-card">
+        <div class="report-header">
+          <div>
+            <h3 style="color: #3b82f6; margin: 0 0 0.5rem 0;">🩺 {{ report.crop_name }} Disease</h3>
+            <p style="color: #6b7280; margin: 0; font-size: 0.9rem;">Report ID: <strong>{{ report.report_id }}</strong></p>
+            <p style="color: #6b7280; margin: 0.25rem 0; font-size: 0.85rem;">
+              Submitted: {{ report.created_at.strftime('%d %B %Y at %I:%M %p') if report.created_at else 'N/A' }}
+            </p>
+          </div>
+          <div>
+            <span class="report-status status-{{ report.status.lower().replace(' ', '-') }}">
+              {{ report.status }}
+            </span>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+          <div>
+            <h4 style="color: #374151; margin-bottom: 1rem;">📝 Your Description</h4>
+            <p style="color: #6b7280; line-height: 1.8;">{{ report.disease_description }}</p>
+            
+            <div style="margin-top: 1.5rem;">
+              <h4 style="color: #374151; margin-bottom: 0.5rem;">📍 Location</h4>
+              <p style="color: #6b7280;">{{ report.location or 'Not specified' }}</p>
+            </div>
+            
+            <div style="margin-top: 1rem;">
+              <h4 style="color: #374151; margin-bottom: 0.5rem;">📞 Contact</h4>
+              <p style="color: #6b7280;">{{ report.mobile or 'Not specified' }}</p>
+            </div>
+          </div>
+          
+          <div>
+            {% if report.photo_path %}
+            <h4 style="color: #374151; margin-bottom: 1rem;">📷 Uploaded Photo</h4>
+            <img src="{{ url_for('static', filename=report.photo_path) }}" 
+                 alt="Disease Photo" class="report-image">
+            {% else %}
+            <div style="background: #f3f4f6; padding: 2rem; border-radius: 8px; text-align: center;">
+              <p style="color: #6b7280;">No photo uploaded</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if report.status == 'Responded' %}
+        <div class="admin-response-box">
+          <h4 style="color: #10b981; margin: 0 0 1rem 0;">✅ Expert Response</h4>
+          
+          <div style="background: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+            <p style="color: #374151; line-height: 1.8; margin: 0;">{{ report.admin_response }}</p>
+          </div>
+          
+          {% if report.recommended_medicine %}
+          <div class="medicine-card">
+            <h4 style="color: #059669; margin: 0 0 0.75rem 0;">💊 Recommended Medicine</h4>
+            <p style="color: #374151; margin: 0; line-height: 1.8;">{{ report.recommended_medicine }}</p>
+          </div>
+          {% endif %}
+          
+          <div style="margin-top: 1rem; font-size: 0.85rem; color: #6b7280;">
+            <p style="margin: 0;">Responded by: <strong>{{ report.responded_by or 'Admin' }}</strong></p>
+            <p style="margin: 0.25rem 0 0 0;">
+              Response Date: {{ report.responded_at.strftime('%d %B %Y at %I:%M %p') if report.responded_at else 'N/A' }}
+            </p>
+          </div>
+        </div>
+        {% else %}
+        <div style="background: #fef3c7; padding: 1rem; border-radius: 8px; margin-top: 1.5rem; border-left: 4px solid #f59e0b;">
+          <p style="color: #92400e; margin: 0;">⏳ Your report is under review. Our experts will respond within 24 hours.</p>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state-large">
+        <span class="empty-icon-large">🩺</span>
+        <h3>No Disease Reports Yet</h3>
+        <p>You haven't submitted any disease reports. Get expert advice for your crop diseases.</p>
+        <a href="{{ url_for('disease_report') }}" class="btn btn-primary btn-large">
+          <span>🩺</span> Report Disease Now
+        </a>
+      </div>
+    {% endif %}
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>🌾 Karnataka Krishi Mitra</h4>
+        <p>Expert agricultural guidance at your fingertips</p>
+      </div>
+      <div class="footer-section">
+        <h4>Emergency Helpline</h4>
+        <p>📞 1800-123-4567</p>
+        <p>Available 24/7</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 Karnataka Krishi Mitra. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    function toggleUserDropdown() {
+      document.getElementById('userDropdownMenu').classList.toggle('show');
+    }
+
+    window.addEventListener('click', function(e) {
+      if (!e.target.matches('.user-dropdown-btn') && !e.target.closest('.user-dropdown-btn')) {
+        const dropdown = document.getElementById('userDropdownMenu');
+        if (dropdown && dropdown.classList.contains('show')) {
+          dropdown.classList.remove('show');
+        }
+      }
+    });
+  </script>
+</body>
+</html>

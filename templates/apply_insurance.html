@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{ t('apply_insurance') }} - {{ t('karnataka_krishi_mitra') }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .section-header {
+            text-align: center;
+            margin: 2rem 0 1.5rem 0;
+        }
+
+        .section-header h2 {
+            font-size: 2rem;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .section-header p {
+            font-size: 0.95rem;
+            color: #6b7280;
+        }
+
+        .insurance-hero {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 2.5rem 2rem;
+            border-radius: 15px;
+            margin-bottom: 2.5rem;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.2);
+        }
+
+        .insurance-hero h1 {
+            font-size: 2.2rem !important;
+            margin: 0 0 0.5rem 0 !important;
+            font-weight: 800 !important;
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-stat {
+            background: rgba(255,255,255,0.15);
+            padding: 1.5rem;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .hero-stat:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-3px);
+        }
+
+        .info-banner {
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+            padding: 2rem;
+            border-radius: 15px;
+            margin: 2rem 0;
+            border-left: 5px solid #10b981;
+        }
+
+        .info-banner h3 {
+            text-align: center;
+            color: #059669;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .benefit-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            display: flex;
+            gap: 1rem;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .benefit-item:hover {
+            border-color: #10b981;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.15);
+        }
+
+        .benefit-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .benefit-item strong {
+            color: #1f2937;
+            font-size: 0.95rem;
+        }
+
+        .benefit-item p {
+            color: #6b7280;
+            margin: 0.3rem 0 0 0;
+            font-size: 0.85rem;
+        }
+
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2.5rem 0;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .plan-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border: 2px solid #e5e7eb;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .plan-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.12);
+            border-color: #10b981;
+        }
+
+        .plan-card.popular {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+        }
+
+        .plan-card.expanded {
+            grid-column: 1 / -1;
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -12px;
+            right: 15px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+        }
+
+        .plan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .plan-title-section {
+            display: flex;
+            gap: 0.8rem;
+            align-items: flex-start;
+            flex: 1;
+        }
+
+        .plan-icon {
+            font-size: 2.2rem;
+            flex-shrink: 0;
+        }
+
+        .plan-info {
+            text-align: left;
+        }
+
+        .plan-info h3 {
+            color: #374151;
+            font-size: 1rem;
+            margin: 0 0 0.3rem 0;
+            font-weight: 700;
+        }
+
+        .plan-price-inline {
+            color: #10b981;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .plan-coverage-inline {
+            color: #6b7280;
+            font-size: 0.8rem;
+        }
+
+        .expand-arrow {
+            font-size: 1.4rem;
+            color: #10b981;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .plan-card.expanded .expand-arrow {
+            transform: rotate(180deg);
+        }
+
+        .plan-details {
+            display: none;
+        }
+
+        .plan-card.expanded .plan-details {
+            display: none;
+        }
+
+        /* Plan Details Modal */
+        .plan-details-modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .plan-details-modal.show {
+            display: flex;
+        }
+
+        .plan-modal-content {
+            border-radius: 20px;
+            box-shadow: 0 20px 70px rgba(0,0,0,0.15);
+            background: white;
+            border: 1px solid #e5e7eb;
+            width: 100%;
+            max-width: 500px;
+            max-height: 85vh;
+            overflow-y: auto;
+            margin: auto;
+            padding: 2rem;
+        }
+
+        .plan-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid #d1fae5;
+        }
+
+        .plan-modal-title {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            flex: 1;
+        }
+
+        .plan-modal-icon {
+            font-size: 2.5rem;
+        }
+
+        .plan-modal-info h2 {
+            color: #059669;
+            margin: 0 0 0.5rem 0;
+            font-size: 1.4rem;
+        }
+
+        .plan-modal-close {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 0;
+            transition: all 0.3s ease;
+        }
+
+        .plan-modal-close:hover {
+            color: #10b981;
+        }
+
+        .plan-modal-body {
+            margin-bottom: 1.5rem;
+        }
+
+        .plan-modal-price {
+            font-size: 1.8rem;
+            color: #10b981;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-modal-coverage {
+            color: #10b981;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .plan-modal-features {
+            list-style: none;
+            margin: 1.5rem 0;
+            padding: 0;
+        }
+
+        .plan-modal-features li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            color: #4b5563;
+            font-size: 0.9rem;
+        }
+
+        .plan-modal-features li:before {
+            content: "✓";
+            color: #10b981;
+            font-weight: bold;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .plan-modal-details {
+            background: #f9fafb;
+            padding: 1.2rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            border-left: 4px solid #10b981;
+        }
+
+        .plan-modal-detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            font-size: 0.9rem;
+            color: #374151;
+        }
+
+        .plan-modal-detail-row strong {
+            color: #059669;
+            font-weight: 600;
+        }
+
+        .plan-modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid #e5e7eb;
+        }
+
+        .plan-modal-actions button {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .plan-modal-apply {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .plan-modal-apply:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .plan-modal-close-btn {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .plan-modal-close-btn:hover {
+            background: #e5e7eb;
+        }
+
+        .plan-price {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #10b981;
+            margin: 0.8rem 0 0.5rem 0;
+            line-height: 1;
+        }
+
+        .plan-price span {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .plan-coverage {
+            color: #10b981;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .features-list {
+            list-style: none;
+            margin: 1rem 0;
+            text-align: left;
+        }
+
+        .features-list li {
+            padding: 0.4rem 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            color: #4b5563;
+            font-size: 0.85rem;
+        }
+
+        .features-list li:before {
+            content: "✓";
+            color: #10b981;
+            font-weight: bold;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .plan-details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+        }
+
+        .detail-item {
+            background: #f9fafb;
+            padding: 0.8rem;
+            border-radius: 6px;
+        }
+
+        .detail-item strong {
+            color: #1f2937;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+
+        .detail-item span {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .plan-actions {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: 1.5rem;
+        }
+
+        .plan-actions button {
+            flex: 1;
+            padding: 0.6rem 1rem;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn-apply {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-apply:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-collapse {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-collapse:hover {
+            background: #e5e7eb;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            border-radius: 20px;
+            box-shadow: 0 20px 70px rgba(0,0,0,0.15);
+            background: white;
+            border: 1px solid #e5e7eb;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            margin: auto;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+            padding: 2rem;
+            border-bottom: 2px solid #d1fae5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .modal-header h2 {
+            color: #059669;
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 0;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: #10b981;
+            transform: scale(1.1);
+        }
+
+        form {
+            padding: 2rem;
+        }
+
+        .form-section {
+            margin-bottom: 2.5rem;
+            padding: 1.5rem;
+            background: #f9fafb;
+            border-radius: 12px;
+            border-left: 4px solid #10b981;
+        }
+
+        .form-section h3 {
+            color: #059669;
+            margin: 0 0 1.5rem 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 0;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.6rem;
+            color: #374151;
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .form-group input[readonly] {
+            background: #f3f4f6;
+            color: #6b7280;
+            cursor: not-allowed;
+        }
+
+        .premium-calculator {
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+            padding: 1.8rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            border: 2px solid #d1fae5;
+        }
+
+        .premium-calculator h3 {
+            color: #059669;
+            margin: 0 0 1.5rem 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .calculation-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #d1fae5;
+            color: #374151;
+            font-size: 0.95rem;
+        }
+
+        .calculation-row:last-child {
+            border-bottom: none;
+        }
+
+        .calculation-row.total {
+            padding-top: 1rem;
+            padding-bottom: 0;
+            font-size: 1.1rem;
+            color: #10b981;
+            font-weight: 700;
+        }
+
+        .calculation-row span:last-child {
+            font-weight: 600;
+            color: #10b981;
+        }
+
+        .otp-info {
+            background: #f0fdf4;
+            padding: 1rem;
+            border-radius: 8px;
+            color: #374151;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            border-left: 3px solid #10b981;
+        }
+
+        .otp-demo {
+            color: #6b7280;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+
+        .btn-link {
+            background: none;
+            border: none;
+            color: #10b981;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: underline;
+            padding: 0.5rem 0;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-link:hover {
+            color: #059669;
+            transform: translateX(2px);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid #e5e7eb;
+        }
+
+        .form-actions button {
+            flex: 1;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .form-actions .btn-primary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .form-actions .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .form-actions .btn-outline {
+            background: #f3f4f6;
+            color: #374151;
+            border: 2px solid #e5e7eb;
+        }
+
+        .form-actions .btn-outline:hover {
+            background: #e5e7eb;
+            border-color: #d1d5db;
+        }
+
+        @media (max-width: 768px) {
+            .insurance-hero h1 {
+                font-size: 1.6rem !important;
+            }
+
+            .section-header h2 {
+                font-size: 1.5rem;
+            }
+
+            .plans-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .plan-card.expanded {
+                grid-column: 1;
+            }
+
+            .benefits-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .plan-details-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .plan-modal-content {
+                max-width: 90%;
+                width: 100%;
+            }
+
+            .modal-content {
+                max-width: 95%;
+                width: 100%;
+                max-height: 95vh;
+            }
+
+            .modal-header {
+                padding: 1.5rem;
+            }
+
+            .modal-header h2 {
+                font-size: 1.4rem;
+            }
+
+            form {
+                padding: 1.5rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .form-section {
+                padding: 1rem;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .form-actions button {
+                width: 100%;
+            }
+
+            .plan-modal-actions {
+                flex-direction: column;
+            }
+
+            .plan-modal-actions button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="logo">
+        <span class="logo-icon">🌾</span>
+        <div>
+          <h1>{{ t('karnataka_krishi_mitra') }}</h1>
+          <p class="tagline">{{ t('digital_farming_companion') }}</p>
+        </div>
+      </div>
+
+      <div class="user-section">
+        <div style="display: flex; gap: 0.5rem; margin-right: 1rem;">
+          <a href="{{ url_for('set_lang', lang='en') }}" style="background: none; border: 2px solid #9ca3af; color: #374151; padding: 0.4rem 0.8rem; border-radius: 5px; cursor: pointer; font-weight: 600; text-decoration: none; {% if language == 'en' %}background: #1e9a46; color: white; border-color: #1e9a46;{% endif %}\">EN</a>
+          <a href="{{ url_for('set_lang', lang='kn') }}" style="background: none; border: 2px solid #9ca3af; color: #374151; padding: 0.4rem 0.8rem; border-radius: 5px; cursor: pointer; font-weight: 600; text-decoration: none; {% if language == 'kn' %}background: #1e9a46; color: white; border-color: #1e9a46;{% endif %}\">ಕನ್ನಡ</a>
+        </div>
+        <div class="user-dropdown">
+          <button class="user-dropdown-btn" onclick="toggleUserDropdown()">
+            <span class="user-icon">👤</span>
+            <div class="user-details">
+              <div class="user-name">{{ user.full_name }}</div>
+              <div class="user-role">{{ t('farmer') }}</div>
+            </div>
+            <span class="dropdown-arrow">▼</span>
+          </button>
+          <div class="user-dropdown-menu" id="userDropdownMenu">
+            <div class="dropdown-header">
+              <strong>{{ user.full_name }}</strong>
+              <p>@{{ user.username }}</p>
+            </div>
+            <a href="{{ url_for('my_account') }}" class="dropdown-item">
+              <span>👤</span> {{ t('my_account') }}
+            </a>
+            <a href="{{ url_for('insurance_details') }}" class="dropdown-item">
+              <span>🛡️</span> {{ t('insurance_details') }}
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="{{ url_for('logout') }}" class="dropdown-item logout">
+              <span>🚪</span> {{ t('logout') }}
+            </a>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="main-nav">
+      <div class="nav-content">
+        <a href="{{ url_for('index') }}" class="nav-item">
+          <span class="nav-icon">🏠</span>
+          <span>{{ t('home') }}</span>
+        </a>
+        <a href="{{ url_for('my_account') }}" class="nav-item">
+          <span class="nav-icon">👤</span>
+          <span>{{ t('my_account') }}</span>
+        </a>
+        <a href="{{ url_for('apply_insurance') }}" class="nav-item active">
+          <span class="nav-icon">📝</span>
+          <span>{{ t('apply_insurance') }}</span>
+        </a>
+        <a href="{{ url_for('insurance_details') }}" class="nav-item">
+          <span class="nav-icon">🛡️</span>
+          <span>{{ t('insurance_details') }}</span>
+        </a>
+        
+      </div>
+    </nav>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash-message flash-{{ category }}">
+            <span class="flash-icon">
+              {% if category == 'success' %}✓{% elif category == 'danger' %}✕{% elif category == 'warning' %}⚠{% else %}ℹ{% endif %}
+            </span>
+            <span>{{ message }}</span>
+            <button class="flash-close" onclick="this.parentElement.remove()">×</button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="container">
+    <div class="section-header">
+      <h2>🛡️ {{ t('apply_insurance') }}</h2>
+      <p>Choose the best insurance plan to protect your crops and livelihood</p>
+    </div>
+
+    <!-- Insurance Benefits -->
+    <div class="info-banner">
+      <h3>Why Choose Krishi Mitra Insurance?</h3>
+      <div class="benefits-grid">
+        <div class="benefit-item">
+          <span class="benefit-icon">⚡</span>
+          <div>
+            <strong>Quick Claims</strong>
+            <p>Get settled in 5-15 days</p>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <span class="benefit-icon">📱</span>
+          <div>
+            <strong>100% Digital</strong>
+            <p>Apply from anywhere</p>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <span class="benefit-icon">💰</span>
+          <div>
+            <strong>Affordable Premiums</strong>
+            <p>Starting from ₹500/acre</p>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <span class="benefit-icon">🌾</span>
+          <div>
+            <strong>All Crops Covered</strong>
+            <p>Paddy, wheat, vegetables & more</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Insurance Plans -->
+    <div class="plans-grid" id="plansGrid">
+      {% for plan in plans %}
+      <div class="plan-card {% if plan.get('popular') %}popular{% endif %}" data-plan-id="{{ plan.id }}">
+        {% if plan.get('popular') %}
+        <div class="popular-badge">⭐ Most Popular</div>
+        {% endif %}
+        
+        <div class="plan-header" onclick="selectPlanAndApply('{{ plan.id }}', '{{ plan.name }}', '{{ plan.premium_per_acre }}', '{{ plan.coverage }}')">
+          <div class="plan-title-section">
+            <div class="plan-icon">{{ plan.icon }}</div>
+            <div class="plan-info">
+              <h3>{{ plan.name }}</h3>
+              <div class="plan-price-inline">₹{{ plan.premium_per_acre }}<span style="font-size: 0.8rem; font-weight: 400;">/acre</span></div>
+              <div class="plan-coverage-inline">Coverage: {{ plan.coverage }}</div>
+            </div>
+          </div>
+          <div class="expand-arrow">▼</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Plan Details Modal -->
+  <div id="planDetailsModal" class="plan-details-modal">
+    <div class="plan-modal-content">
+      <div class="plan-modal-header">
+        <div class="plan-modal-title">
+          <div class="plan-modal-icon" id="planModalIcon">🛡️</div>
+          <div class="plan-modal-info">
+            <h2 id="planModalName">Plan Name</h2>
+            <div style="color: #10b981; font-weight: 600;">Coverage: <span id="planModalCoverage">₹0</span></div>
+          </div>
+        </div>
+        <button class="plan-modal-close" onclick="closePlanDetailsModal()">&times;</button>
+      </div>
+
+      <div class="plan-modal-body">
+        <div class="plan-modal-price" id="planModalPrice">₹0<span style="font-size: 0.8rem;">/acre</span></div>
+        
+        <ul class="plan-modal-features" id="planModalFeatures"></ul>
+        
+        <div class="plan-modal-details">
+          <div class="plan-modal-detail-row">
+            <span>Claim Process:</span>
+            <strong id="planModalClaimProcess">15 days</strong>
+          </div>
+          <div class="plan-modal-detail-row">
+            <span>Coverage Period:</span>
+            <strong id="planModalCoveragePeriod">1 year</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="plan-modal-actions">
+        <button class="plan-modal-apply" onclick="applyFromModal()" id="planModalApplyBtn">Apply Now</button>
+        <button class="plan-modal-close-btn" onclick="closePlanDetailsModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Form Modal -->
+    <div id="applicationModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>🛡️ Apply for Crop Insurance</h2>
+          <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+
+        <form id="insuranceApplicationForm">
+          <div class="form-section">
+          <h3>👤 Personal Information</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" value="{{ user.full_name }}" readonly>
+            </div>
+            <div class="form-group">
+              <label>Aadhar Number</label>
+              <input type="text" value="{{ user.aadhar }}" readonly>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>📱 Mobile Number</label>
+              <input type="tel" value="{{ user.mobile }}" readonly>
+            </div>
+            <div class="form-group">
+              <label>📅 Date of Birth</label>
+              <input type="date" value="{{ user.dob }}" readonly>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>📍 Location</label>
+              <input type="text" value="{{ user.location }}" readonly>
+            </div>
+            <div class="form-group">
+              <label>Pincode</label>
+              <input type="text" value="{{ user.pincode }}" readonly>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>🛡️ Insurance Details</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Selected Plan</label>
+              <input type="text" id="selectedPlanName" readonly>
+            </div>
+            <div class="form-group">
+              <label>🌾 Crop Type</label>
+              <select id="cropType" required>
+                <option value="">Select Crop</option>
+                <option value="Paddy">🍚 Paddy</option>
+                <option value="Wheat">🌾 Wheat</option>
+                <option value="Ragi">🌾 Ragi</option>
+                <option value="Maize">🌽 Maize</option>
+                <option value="Cotton">🏵️ Cotton</option>
+                <option value="Sugarcane">🌿 Sugarcane</option>
+                <option value="Groundnut">🥜 Groundnut</option>
+                <option value="Vegetables">🥬 Vegetables</option>
+                <option value="Fruits">🍎 Fruits</option>
+                <option value="Other">📦 Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>📏 Land Size (in acres)</label>
+              <input type="number" id="landSize" value="{{ user.land_size }}" step="0.1" min="0.1" oninput="calculatePremium()" required>
+            </div>
+            <div class="form-group">
+              <label>💰 Coverage Amount</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="premium-calculator">
+            <h3>Premium Calculation</h3>
+            <div class="calculation-row">
+              <span>Premium per acre:</span>
+              <span id="premiumPerAcre">₹0</span>
+            </div>
+            <div class="calculation-row">
+              <span>Land size:</span>
+              <span id="displayLandSize">0 acres</span>
+            </div>
+            <div class="calculation-row">
+              <span>Base Premium:</span>
+              <span id="basePremium">₹0</span>
+            </div>
+            <div class="calculation-row">
+              <span>GST (18%):</span>
+              <span id="gst">₹0</span>
+            </div>
+            <div class="calculation-row total">
+              <span><strong>Total Premium:</strong></span>
+              <span id="totalPremium"><strong>₹0</strong></span>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>🔐 OTP Verification</h3>
+            <p class="otp-info">An OTP will be sent to your registered mobile number: <strong>{{ user.mobile }}</strong></p>
+            <div class="form-group">
+              <label>Enter 6-Digit OTP</label>
+              <div style="display: flex; gap: 0.8rem; align-items: center;">
+                <input type="text" id="otpInput" placeholder="Enter 6-digit OTP" maxlength="6" required style="flex: 1;">
+                <button type="button" class="btn-link" onclick="sendOTP()">📨 Send OTP</button>
+              </div>
+            </div>
+            <p class="otp-demo">Demo OTP: <strong>123456</strong></p>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline" onclick="closeModal()">❌ Cancel</button>
+            <button type="submit" class="btn btn-primary">✅ Submit Application</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>🌾 Karnataka Krishi Mitra</h4>
+        <p>Empowering farmers with digital solutions for better agricultural practices and market access.</p>
+      </div>
+      <div class="footer-section">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="{{ url_for('index') }}">Home</a></li>
+          <li><a href="{{ url_for('my_account') }}">My Account</a></li>
+          <li><a href="{{ url_for('apply_insurance') }}">Apply Insurance</a></li>
+          <li><a href="{{ url_for('insurance_details') }}">Insurance Details</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Contact Us</h4>
+        <p>📧 Email: support@krishimitra.gov.in</p>
+        <p>📞 Helpline: 1800-123-4567</p>
+        <p>🕒 Mon-Sat: 9:00 AM - 6:00 PM</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 Karnataka Krishi Mitra. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+document.addEventListener('DOMContentLoaded', function () {
+  let selectedPlanId = '';
+  let premiumPerAcre = 0;
+  let coverage = '';
+  let currentPlanId = '';
+  let currentPlanName = '';
+  let currentPremium = '';
+  let currentCoverage = '';
+
+  // Open plan details modal
+  window.openPlanDetailsModal = function(event, planId, icon, name, premium, planCoverage, features, claimProcess, coveragePeriod) {
+    event.stopPropagation();
+    
+    currentPlanId = planId;
+    currentPlanName = name;
+    currentPremium = premium;
+    currentCoverage = planCoverage;
+
+    document.getElementById('planModalIcon').textContent = icon;
+    document.getElementById('planModalName').textContent = name;
+    document.getElementById('planModalCoverage').textContent = planCoverage;
+    document.getElementById('planModalPrice').textContent = '₹' + premium + '/acre';
+    document.getElementById('planModalClaimProcess').textContent = claimProcess;
+    document.getElementById('planModalCoveragePeriod').textContent = coveragePeriod;
+
+    const featuresList = document.getElementById('planModalFeatures');
+    featuresList.innerHTML = '';
+    features.forEach(feature => {
+      const li = document.createElement('li');
+      li.textContent = feature;
+      featuresList.appendChild(li);
+    });
+
+    const modal = document.getElementById('planDetailsModal');
+    if (modal) {
+      modal.classList.add('show');
+      modal.style.display = 'flex';
+    }
+  };
+
+  window.closePlanDetailsModal = function() {
+    const modal = document.getElementById('planDetailsModal');
+    if (modal) {
+      modal.classList.remove('show');
+      modal.style.display = 'none';
+    }
+  };
+
+  window.applyFromModal = function() {
+    closePlanDetailsModal();
+    selectPlanAndApply(currentPlanId, currentPlanName, currentPremium, currentCoverage);
+  };
+
+  // Close plan modal when clicking outside
+  window.addEventListener('click', function (event) {
+    const modal = document.getElementById('planDetailsModal');
+    if (modal && event.target === modal) {
+      closePlanDetailsModal();
+    }
+  });
+
+  function selectPlanAndApply(planId, planName, premium, planCoverage) {
+    selectedPlanId = planId;
+    premiumPerAcre = parseFloat(premium);
+    coverage = planCoverage || '';
+
+    const sel = document.getElementById('selectedPlanName');
+    const cov = document.getElementById('coverageAmount');
+    const ppa = document.getElementById('premiumPerAcre');
+
+    if (sel) sel.value = planName;
+    if (cov) cov.value = planCoverage;
+    if (ppa) ppa.textContent = '₹' + (premiumPerAcre.toFixed ? premiumPerAcre.toFixed(2) : premiumPerAcre);
+
+    calculatePremium();
+    const modal = document.getElementById('applicationModal');
+    if (modal) {
+      modal.style.display = 'flex';
+      // Force reflow to ensure display change
+      modal.offsetHeight;
+    }
+  }
+
+  window.selectPlanAndApply = selectPlanAndApply;
+
+  // Legacy support
+  function selectPlan(planId, planName, premium, planCoverage) {
+    selectPlanAndApply(planId, planName, premium, planCoverage);
+  }
+  window.selectPlan = selectPlan;
+
+  function closeModal() {
+    const modal = document.getElementById('applicationModal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+  }
+
+  function calculatePremium() {
+    const landSizeEl = document.getElementById('landSize');
+    const landSize = parseFloat(landSizeEl ? landSizeEl.value : 0) || 0;
+    const basePremium = premiumPerAcre * landSize;
+    const gstAmount = basePremium * 0.18;
+    const total = basePremium + gstAmount;
+
+    const displayLandSize = document.getElementById('displayLandSize');
+    const basePremiumEl = document.getElementById('basePremium');
+    const gstEl = document.getElementById('gst');
+    const totalPremiumEl = document.getElementById('totalPremium');
+
+    if (displayLandSize) displayLandSize.textContent = landSize.toFixed(1) + ' acres';
+    if (basePremiumEl) basePremiumEl.textContent = '₹' + basePremium.toFixed(2);
+    if (gstEl) gstEl.textContent = '₹' + gstAmount.toFixed(2);
+    if (totalPremiumEl) totalPremiumEl.textContent = '₹' + total.toFixed(2);
+  }
+
+  function sendOTP() {
+    alert('OTP sent to your mobile number!\nDemo OTP: 123456');
+  }
+
+  window.sendOTP = sendOTP;
+
+  const form = document.getElementById('insuranceApplicationForm');
+  if (form) {
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const otp = document.getElementById('otpInput')?.value;
+      const cropType = document.getElementById('cropType')?.value;
+      const landSize = document.getElementById('landSize')?.value;
+
+      if (!otp || !cropType || !landSize) {
+        alert('Please fill all required fields');
+        return;
+      }
+
+      const basePremium = premiumPerAcre * parseFloat(landSize || 0);
+      const totalPremium = basePremium * 1.18;
+
+      try {
+        const response = await fetch('/api/insurance/apply', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            otp: otp,
+            plan_id: selectedPlanId,
+            plan_name: document.getElementById('selectedPlanName')?.value || '',
+            crop_type: cropType,
+            land_size: landSize,
+            premium: totalPremium.toFixed(2),
+            coverage: coverage
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          alert('Insurance application submitted successfully!\nApplication ID: ' + result.application_id);
+          window.location.href = '/insurance-details';
+        } else {
+          alert('Error: ' + (result.error || 'Application failed'));
+        }
+      } catch (error) {
+        alert('Error submitting application. Please try again.');
+      }
+    });
+  }
+
+  window.addEventListener('click', function (event) {
+    const modal = document.getElementById('applicationModal');
+    if (modal && event.target === modal) {
+      closeModal();
+    }
+  });
+
+  window.closeModal = closeModal;
+  window.calculatePremium = calculatePremium;
+});
+
+function toggleUserDropdown() {
+  const menu = document.getElementById('userDropdownMenu');
+  menu.classList.toggle('show');
+}
+
+window.addEventListener('click', function(e) {
+  if (!e.target.matches('.user-dropdown-btn') && !e.target.closest('.user-dropdown-btn')) {
+    const dropdown = document.getElementById('userDropdownMenu');
+    if (dropdown && dropdown.classList.contains('show')) {
+      dropdown.classList.remove('show');
+    }
+  }
+});
+</script>
+</body>
+</html>

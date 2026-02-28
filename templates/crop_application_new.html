@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Crop Application - Karnataka Krishi Mitra</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .limit-alert {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+        }
+        
+        .limit-alert.danger {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-left-color: #ef4444;
+        }
+        
+        .limit-alert.success {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-left-color: #10b981;
+        }
+        
+        .limit-status-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin: 1rem 0;
+        }
+        
+        .progress-bar {
+            height: 30px;
+            background: #f3f4f6;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .progress-fill.warning {
+            background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+        }
+        
+        .progress-fill.danger {
+            background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+        }
+        
+        .alternative-crops {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .alt-crop-card {
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .alt-crop-card:hover {
+            background: #f0fdf4;
+            border-color: #10b981;
+            transform: translateY(-2px);
+        }
+        
+        .price-comparison {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .price-box {
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .price-trend-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .trend-high {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .trend-normal {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .trend-low {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="logo">
+        <span class="logo-icon">🌾</span>
+        <div>
+          <h1>{{ t('karnataka_krishi_mitra') }}</h1>
+          <p class="tagline">{{ t('digital_farming_companion') }}</p>
+        </div>
+      </div>
+
+      <div class="user-section">
+        <div style="display: flex; gap: 0.5rem; margin-right: 1rem;">
+          <a href="{{ url_for('set_lang', lang='en') }}" class="lang-switch-btn {% if language == 'en' %}active{% endif %}">EN</a>
+          <a href="{{ url_for('set_lang', lang='kn') }}" class="lang-switch-btn {% if language == 'kn' %}active{% endif %}">ಕನ್ನಡ</a>
+        </div>
+        <div class="user-dropdown">
+          <button class="user-dropdown-btn" onclick="toggleUserDropdown()">
+            <span class="user-icon">👤</span>
+            <div class="user-details">
+              <div class="user-name">{{ user.full_name }}</div>
+              <div class="user-role">{{ t('farmer') }}</div>
+            </div>
+            <span class="dropdown-arrow">▼</span>
+          </button>
+          <div class="user-dropdown-menu" id="userDropdownMenu">
+            <div class="dropdown-header">
+              <strong>{{ user.full_name }}</strong>
+              <p>@{{ user.username }}</p>
+            </div>
+            <a href="{{ url_for('my_account') }}" class="dropdown-item">
+              <span>👤</span> {{ t('my_account') }}
+            </a>
+            <a href="{{ url_for('my_crop_applications') }}" class="dropdown-item">
+              <span>📋</span> My Applications
+            </a>
+            <a href="{{ url_for('disease_report') }}" class="dropdown-item">
+              <span>🩺</span> Disease Report
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="{{ url_for('logout') }}" class="dropdown-item logout">
+              <span>🚪</span> Logout
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="main-nav">
+      <div class="nav-content">
+        <a href="{{ url_for('index') }}" class="nav-item">
+          <span class="nav-icon">🏠</span>
+          <span>{{ t('home') }}</span>
+        </a>
+        <a href="{{ url_for('crop_application') }}" class="nav-item active">
+          <span class="nav-icon">🌱</span>
+          <span>{{ t('crop_applications') }}</span>
+        </a>
+        <a href="{{ url_for('disease_report') }}" class="nav-item">
+          <span class="nav-icon">🩺</span>
+          <span>Report Disease</span>
+        </a>
+        <a href="{{ url_for('apply_insurance') }}" class="nav-item">
+          <span class="nav-icon">🛡️</span>
+          <span>Insurance</span>
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <div class="container crop-application-container">
+    <div class="application-header">
+      <h2>🌾 Smart Crop Planning Application</h2>
+      <p>Plan your crop with market insights and demand analysis</p>
+    </div>
+
+    <div id="limitWarning" class="limit-alert" style="display: none;">
+      <h3 style="margin: 0 0 0.5rem 0;">⚠️ Important Market Information</h3>
+      <p id="warningMessage"></p>
+    </div>
+
+    <div class="card">
+      <h3 style="color: var(--primary-green); margin-bottom: 1.5rem;">📝 Crop Details</h3>
+      
+      <form id="cropApplicationForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="crop_name">Crop Name *</label>
+            <select id="crop_name" required onchange="checkCropLimit()">
+              <option value="">Select Crop</option>
+              {% for crop in crops %}
+              <option value="{{ crop }}">{{ crop }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="crop_variety">Crop Variety (Optional)</label>
+            <input type="text" id="crop_variety" placeholder="e.g., Hybrid, Local">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="land_area">Land Area (acres) *</label>
+            <input type="number" id="land_area" step="0.1" min="0.1" required placeholder="e.g., 2.5" onchange="checkCropLimit()">
+          </div>
+          <div class="form-group">
+            <label for="expected_yield">Expected Yield (quintals) *</label>
+            <input type="number" id="expected_yield" step="0.1" min="0.1" required placeholder="e.g., 50" onchange="checkCropLimit()">
+          </div>
+        </div>
+
+        <div id="limitStatusCard" class="limit-status-card" style="display: none;">
+          <h4 style="color: #374151; margin-bottom: 1rem;">📊 Market Demand Status</h4>
+          
+          <div class="progress-bar">
+            <div id="progressFill" class="progress-fill" style="width: 0%">0%</div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+            <div>
+              <div style="color: #6b7280; font-size: 0.9rem;">Daily Limit</div>
+              <div style="font-weight: 700; color: #111827;" id="dailyLimit">-</div>
+            </div>
+            <div>
+              <div style="color: #6b7280; font-size: 0.9rem;">Current Applications</div>
+              <div style="font-weight: 700; color: #111827;" id="currentApps">-</div>
+            </div>
+            <div>
+              <div style="color: #6b7280; font-size: 0.9rem;">Remaining</div>
+              <div style="font-weight: 700; color: #10b981;" id="remaining">-</div>
+            </div>
+          </div>
+
+          <div id="priceTrendSection" style="margin-top: 1.5rem; display: none;">
+            <h4 style="color: #374151; margin-bottom: 1rem;">💰 Price Forecast</h4>
+            <div class="price-comparison">
+              <div class="price-box">
+                <div style="color: #6b7280; font-size: 0.9rem;">Base Price</div>
+                <div style="font-weight: 700; color: #111827; font-size: 1.3rem;" id="basePrice">₹-</div>
+              </div>
+              <div class="price-box">
+                <div style="color: #6b7280; font-size: 0.9rem;">Expected Price</div>
+                <div style="font-weight: 700; color: #10b981; font-size: 1.3rem;" id="adjustedPrice">₹-</div>
+              </div>
+              <div class="price-box">
+                <div style="color: #6b7280; font-size: 0.9rem;">Market Trend</div>
+                <div id="priceTrend" class="price-trend-badge trend-normal">NORMAL</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="alternativeCropsSection" style="display: none; margin: 1.5rem 0;">
+          <h4 style="color: #ef4444; margin-bottom: 1rem;">🔄 Recommended Alternative Crops for Your Soil</h4>
+          <div class="alternative-crops" id="alternativeCropsList"></div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="planting_date">Planting Date *</label>
+            <input type="date" id="planting_date" required>
+          </div>
+          <div class="form-group">
+            <label for="expected_harvest_date">Expected Harvest Date *</label>
+            <input type="date" id="expected_harvest_date" required>
+          </div>
+        </div>
+
+        <input type="hidden" id="estimated_price_per_kg" value="0">
+
+        <div class="form-group">
+          <label for="notes">Additional Notes (Optional)</label>
+          <textarea id="notes" rows="3" placeholder="Any additional information..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" required>
+            <span>I confirm the information is accurate</span>
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline" onclick="goToHome()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="submitBtn">Submit Application</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function goToHome() {
+      window.location.href = '{{ url_for("index") }}';
+    }
+
+    function toggleUserDropdown() {
+      document.getElementById('userDropdownMenu').classList.toggle('show');
+    }
+
+    window.addEventListener('click', function(e) {
+      if (!e.target.matches('.user-dropdown-btn') && !e.target.closest('.user-dropdown-btn')) {
+        const dropdown = document.getElementById('userDropdownMenu');
+        if (dropdown && dropdown.classList.contains('show')) {
+          dropdown.classList.remove('show');
+        }
+      }
+    });
+
+    async function checkCropLimit() {
+      const cropName = document.getElementById('crop_name').value;
+      const landArea = parseFloat(document.getElementById('land_area').value) || 0;
+      const expectedYield = parseFloat(document.getElementById('expected_yield').value) || 0;
+      
+      if (!cropName || landArea === 0 || expectedYield === 0) return;
+      
+      const estimatedTonnes = expectedYield * 0.1;
+      
+      try {
+        const response = await fetch('/api/crop/check-limit', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            crop_name: cropName,
+            estimated_tonnes: estimatedTonnes
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          const statusCard = document.getElementById('limitStatusCard');
+          statusCard.style.display = 'block';
+          
+          const supplyPercentage = data.supply_percentage;
+          const progressFill = document.getElementById('progressFill');
+          
+          progressFill.style.width = Math.min(supplyPercentage, 100) + '%';
+          progressFill.textContent = supplyPercentage.toFixed(1) + '%';
+          
+          if (supplyPercentage < 70) {
+            progressFill.className = 'progress-fill';
+          } else if (supplyPercentage < 90) {
+            progressFill.className = 'progress-fill warning';
+          } else {
+            progressFill.className = 'progress-fill danger';
+          }
+          
+          document.getElementById('dailyLimit').textContent = data.daily_limit + ' tonnes';
+          document.getElementById('currentApps').textContent = data.current_applications.toFixed(2) + ' tonnes';
+          document.getElementById('remaining').textContent = data.remaining.toFixed(2) + ' tonnes';
+          
+          document.getElementById('basePrice').textContent = '₹' + data.base_price;
+          document.getElementById('adjustedPrice').textContent = '₹' + data.adjusted_price;
+          document.getElementById('estimated_price_per_kg').value = data.adjusted_price;
+          
+          const trendBadge = document.getElementById('priceTrend');
+          trendBadge.textContent = data.price_trend;
+          trendBadge.className = 'price-trend-badge trend-' + data.price_trend.toLowerCase();
+          
+          document.getElementById('priceTrendSection').style.display = 'block';
+          
+          const warningDiv = document.getElementById('limitWarning');
+          const warningMsg = document.getElementById('warningMessage');
+          const submitBtn = document.getElementById('submitBtn');
+          
+          if (!data.can_apply) {
+            warningDiv.style.display = 'block';
+            warningDiv.className = 'limit-alert danger';
+            warningMsg.innerHTML = `<strong>❌ Application Limit Exceeded!</strong><br>
+              The daily market demand for ${cropName} has been exceeded. 
+              Your application cannot be submitted. Please consider alternative crops below.`;
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.5';
+            
+            const altSection = document.getElementById('alternativeCropsSection');
+            altSection.style.display = 'block';
+            const altList = document.getElementById('alternativeCropsList');
+            altList.innerHTML = '';
+            
+            data.alternative_crops.forEach(crop => {
+              const card = document.createElement('div');
+              card.className = 'alt-crop-card';
+              card.innerHTML = `<strong>${crop}</strong>`;
+              card.onclick = () => {
+                document.getElementById('crop_name').value = crop;
+                checkCropLimit();
+              };
+              altList.appendChild(card);
+            });
+          } else if (supplyPercentage >= 85) {
+            warningDiv.style.display = 'block';
+            warningDiv.className = 'limit-alert';
+            warningMsg.innerHTML = `<strong>⚠️ High Supply Warning!</strong><br>
+              Market demand for ${cropName} is ${supplyPercentage.toFixed(1)}% filled. 
+              Expected price may be lower (₹${data.adjusted_price}/kg). Consider alternative crops for better returns.`;
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            document.getElementById('alternativeCropsSection').style.display = 'none';
+          } else if (supplyPercentage < 70) {
+            warningDiv.style.display = 'block';
+            warningDiv.className = 'limit-alert success';
+            warningMsg.innerHTML = `<strong>✅ Excellent Choice!</strong><br>
+              High demand for ${cropName}! Expected price: ₹${data.adjusted_price}/kg (${((data.adjusted_price - data.base_price) / data.base_price * 100).toFixed(1)}% above base price).`;
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            document.getElementById('alternativeCropsSection').style.display = 'none';
+          } else {
+            warningDiv.style.display = 'none';
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            document.getElementById('alternativeCropsSection').style.display = 'none';
+          }
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    }
+
+    document.getElementById('cropApplicationForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const formData = {
+        crop_name: document.getElementById('crop_name').value,
+        crop_variety: document.getElementById('crop_variety').value,
+        land_area: document.getElementById('land_area').value,
+        expected_yield: document.getElementById('expected_yield').value,
+        planting_date: document.getElementById('planting_date').value,
+        expected_harvest_date: document.getElementById('expected_harvest_date').value,
+        estimated_price_per_kg: document.getElementById('estimated_price_per_kg').value,
+        notes: document.getElementById('notes').value
+      };
+      
+      try {
+        const response = await fetch('/api/crop/apply', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          alert('Application submitted successfully!\nApplication ID: ' + data.application_id);
+          window.location.href = '{{ url_for("my_crop_applications") }}';
+        } else {
+          alert('Error: ' + data.error);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error submitting application');
+      }
+    });
+  </script>
+</body>
+</html>

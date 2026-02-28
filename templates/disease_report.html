@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{ t('report_disease') }} - {{ t('karnataka_krishi_mitra') }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .upload-area {
+            border: 3px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            text-align: center;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .upload-area:hover {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+        
+        .upload-area.dragover {
+            border-color: #10b981;
+            background: #d1fae5;
+        }
+        
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        
+        .image-preview {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 12px;
+            margin-top: 1rem;
+        }
+        
+        .info-box {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+        }
+    </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="logo">
+        <span class="logo-icon">🌾</span>
+        <div>
+          <h1>{{ t('karnataka_krishi_mitra') }}</h1>
+          <p class="tagline">{{ t('digital_farming_companion') }}</p>
+        </div>
+      </div>
+
+      <div class="user-section">
+        <div class="language-switcher-dashboard" style="display: flex; gap: 0.5rem; margin-right: 1rem;">
+          <a href="{{ url_for('set_lang', lang='en') }}" class="lang-btn-dashboard {% if language == 'en' %}active{% endif %}" style="background: none; border: 2px solid #9ca3af; color: #374151; padding: 0.4rem 0.8rem; border-radius: 5px; cursor: pointer; font-weight: 600; transition: all 0.3s; font-size: 0.9rem; text-decoration: none;">EN</a>
+          <a href="{{ url_for('set_lang', lang='kn') }}" class="lang-btn-dashboard {% if language == 'kn' %}active{% endif %}" style="background: none; border: 2px solid #9ca3af; color: #374151; padding: 0.4rem 0.8rem; border-radius: 5px; cursor: pointer; font-weight: 600; transition: all 0.3s; font-size: 0.9rem; text-decoration: none;">ಕನ್ನಡ</a>
+        </div>
+        <div class="user-dropdown">
+          <button class="user-dropdown-btn" onclick="toggleUserDropdown()">
+            <span class="user-icon">👤</span>
+            <div class="user-details">
+              <div class="user-name">{{ user.full_name }}</div>
+              <div class="user-role">{{ t('farmer') }}</div>
+            </div>
+            <span class="dropdown-arrow">▼</span>
+          </button>
+          <div class="user-dropdown-menu" id="userDropdownMenu">
+            <div class="dropdown-header">
+              <strong>{{ user.full_name }}</strong>
+              <p>@{{ user.username }}</p>
+            </div>
+            <a href="{{ url_for('my_account') }}" class="dropdown-item">
+              <span>👤</span> {{ t('my_account') }}
+            </a>
+            <a href="{{ url_for('disease_report') }}" class="dropdown-item active">
+              <span>🩺</span> {{ t('report_disease') }}
+            </a>
+            <a href="{{ url_for('my_disease_reports') }}" class="dropdown-item">
+              <span>📋</span> My Reports
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="{{ url_for('logout') }}" class="dropdown-item logout">
+              <span>🚪</span> Logout
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="main-nav">
+      <div class="nav-content">
+        <a href="{{ url_for('index') }}" class="nav-item">
+          <span class="nav-icon">🏠</span>
+          <span>{{ t('home') }}</span>
+        </a>
+        <a href="{{ url_for('crop_application') }}" class="nav-item">
+          <span class="nav-icon">🌱</span>
+          <span>{{ t('crop_applications') }}</span>
+        </a>
+        <a href="{{ url_for('disease_report') }}" class="nav-item active">
+          <span class="nav-icon">🩺</span>
+          <span>Report Disease</span>
+        </a>
+        <a href="{{ url_for('apply_insurance') }}" class="nav-item">
+          <span class="nav-icon">🛡️</span>
+          <span>Insurance</span>
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="section-header">
+      <h2>🩺 Report Crop Disease</h2>
+      <p>Get expert advice from agricultural specialists</p>
+    </div>
+
+    <div class="info-box">
+      <h3 style="color: #1e40af; margin: 0 0 0.5rem 0;">ℹ️ How it works</h3>
+      <p style="margin: 0;">1. Upload a clear photo of the affected crop<br>
+      2. Select the crop type and describe the problem<br>
+      3. Our agricultural experts will review and provide recommendations<br>
+      4. Receive medicine suggestions and treatment advice</p>
+    </div>
+
+    <div class="card">
+      <h3 style="color: var(--primary-green); margin-bottom: 1.5rem;">📸 Upload Disease Photo</h3>
+      
+      <form id="diseaseReportForm" enctype="multipart/form-data">
+        <div class="upload-area" id="uploadArea" onclick="document.getElementById('disease_photo').click()">
+          <div class="upload-icon">📷</div>
+          <h4>Click or Drag to Upload Photo</h4>
+          <p style="color: #6b7280; margin-top: 0.5rem;">Maximum file size: 16MB</p>
+          <p style="color: #6b7280; font-size: 0.9rem;">Supported: JPG, PNG, JPEG, GIF</p>
+        </div>
+        
+        <input type="file" id="disease_photo" name="disease_photo" accept="image/*" style="display: none;" onchange="previewImage()" required>
+        
+        <div id="imagePreviewContainer" style="display: none; text-align: center; margin-top: 1rem;">
+          <img id="imagePreview" class="image-preview" alt="Preview">
+          <button type="button" class="btn btn-outline" style="margin-top: 1rem;" onclick="removeImage()">Remove Photo</button>
+        </div>
+
+        <div class="form-row" style="margin-top: 2rem;">
+          <div class="form-group">
+            <label for="crop_name">Affected Crop *</label>
+            <select id="crop_name" name="crop_name" required>
+              <option value="">Select Crop</option>
+              {% for crop in crops %}
+              <option value="{{ crop }}">{{ crop }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Disease Description *</label>
+          <textarea id="description" name="description" rows="5" required 
+                    placeholder="Describe the symptoms you're observing (e.g., yellow spots on leaves, wilting, discoloration, pests visible, etc.)"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline" onclick="goBack()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Report</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card" style="margin-top: 2rem;">
+      <h3 style="color: var(--primary-green); margin-bottom: 1rem;">📋 Tips for Better Diagnosis</h3>
+      <ul style="line-height: 2;">
+        <li>Take photos in good lighting (natural daylight is best)</li>
+        <li>Capture close-up images showing affected areas clearly</li>
+        <li>Include multiple photos if disease appears in different parts</li>
+        <li>Describe when you first noticed the problem</li>
+        <li>Mention any recent weather changes or treatments applied</li>
+        <li>Note if neighboring crops are also affected</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>🌾 Karnataka Krishi Mitra</h4>
+        <p>Expert agricultural guidance at your fingertips</p>
+      </div>
+      <div class="footer-section">
+        <h4>Contact</h4>
+        <p>📧 support@krishimitra.gov.in</p>
+        <p>📞 1800-123-4567</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 Karnataka Krishi Mitra. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    function toggleUserDropdown() {
+      document.getElementById('userDropdownMenu').classList.toggle('show');
+    }
+
+    window.addEventListener('click', function(e) {
+      if (!e.target.matches('.user-dropdown-btn') && !e.target.closest('.user-dropdown-btn')) {
+        const dropdown = document.getElementById('userDropdownMenu');
+        if (dropdown && dropdown.classList.contains('show')) {
+          dropdown.classList.remove('show');
+        }
+      }
+    });
+
+    function goBack() {
+      window.history.back();
+    }
+
+    // Drag and drop functionality
+    const uploadArea = document.getElementById('uploadArea');
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      uploadArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+      uploadArea.addEventListener(eventName, () => {
+        uploadArea.classList.add('dragover');
+      }, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+      uploadArea.addEventListener(eventName, () => {
+        uploadArea.classList.remove('dragover');
+      }, false);
+    });
+    
+    uploadArea.addEventListener('drop', function(e) {
+      const dt = e.dataTransfer;
+      const file = dt.files[0];
+      document.getElementById('disease_photo').files = dt.files;
+      previewImage();
+    }, false);
+
+    function previewImage() {
+      const file = document.getElementById('disease_photo').files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('imagePreview').src = e.target.result;
+          document.getElementById('imagePreviewContainer').style.display = 'block';
+          document.getElementById('uploadArea').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function removeImage() {
+      document.getElementById('disease_photo').value = '';
+      document.getElementById('imagePreviewContainer').style.display = 'none';
+      document.getElementById('uploadArea').style.display = 'block';
+    }
+
+    document.getElementById('diseaseReportForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      
+      try {
+        const response = await fetch('/api/disease/report', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          alert('Disease report submitted successfully!\nReport ID: ' + data.report_id + 
+                '\n\nOur experts will review and respond within 24 hours.');
+          window.location.href = '{{ url_for("my_disease_reports") }}';
+        } else {
+          alert('Error: ' + data.error);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error submitting report. Please try again.');
+      }
+    });
+  </script>
+</body>
+</html>

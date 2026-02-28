@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{ t('my_crop_applications') }} - {{ t('karnataka_krishi_mitra') }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+      .language-switcher-dashboard {
+        display: flex;
+        gap: 0.5rem;
+      }
+      .lang-btn-dashboard {
+        background: none;
+        border: 2px solid #9ca3af;
+        color: #374151;
+        padding: 0.4rem 0.8rem;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s;
+        font-size: 0.9rem;
+      }
+      .lang-btn-dashboard:hover {
+        background: #f3f4f6;
+        border-color: #1e9a46;
+      }
+      .lang-btn-dashboard.active {
+        background: #1e9a46;
+        color: white;
+        border-color: #1e9a46;
+      }
+    </style>
+    <style>
+        .applications-grid {
+            display: grid;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .application-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border-left: 6px solid #10b981;
+        }
+        
+        .application-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f3f4f6;
+        }
+        
+        .application-title h3 {
+            color: #10b981;
+            margin: 0 0 0.5rem 0;
+            font-size: 1.5rem;
+        }
+        
+        .application-id {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin: 0.25rem 0;
+        }
+        
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .status-planned {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .status-planted {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-growing {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-harvested {
+            background: #f0fdf4;
+            color: #166534;
+        }
+        
+        .application-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .detail-item {
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        
+        .detail-label {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+        
+        .detail-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #111827;
+        }
+        
+        .price-highlight {
+            color: #10b981;
+            font-size: 1.3rem;
+        }
+    </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="logo">
+        <span class="logo-icon">🌾</span>
+        <div>
+          <h1>{{ t('karnataka_krishi_mitra') }}</h1>
+          <p class="tagline">{{ t('digital_farming_companion') }}</p>
+        </div>
+      </div>
+
+      <div class="user-section">
+        <div class="language-switcher-dashboard">
+          <a href="{{ url_for('set_lang', lang='en') }}" class="lang-btn-dashboard {% if language == 'en' %}active{% endif %}">EN</a>
+          <a href="{{ url_for('set_lang', lang='kn') }}" class="lang-btn-dashboard {% if language == 'kn' %}active{% endif %}">ಕನ್ನಡ</a>
+        </div>
+
+        <div class="user-dropdown">
+          <button class="user-dropdown-btn" onclick="toggleUserDropdown()">
+            <span class="user-icon">👤</span>
+            <div class="user-details">
+              <div class="user-name">{{ user.full_name if user.full_name else user.username }}</div>
+              <div class="user-role">{{ t('farmer') }}</div>
+            </div>
+            <span class="dropdown-arrow">▼</span>
+          </button>
+          <div class="user-dropdown-menu" id="userDropdownMenu">
+            <div class="dropdown-header">
+              <strong>{{ user.full_name if user.full_name else user.username }}</strong>
+              <p>@{{ user.username }}</p>
+            </div>
+            <a href="{{ url_for('my_account') }}" class="dropdown-item">
+              <span>👤</span> {{ t('my_account') }}
+            </a>
+            <a href="{{ url_for('my_crop_applications') }}" class="dropdown-item active">
+              <span>📋</span> {{ t('my_crop_applications') }}
+            </a>
+            <a href="{{ url_for('insurance_details') }}" class="dropdown-item">
+              <span>🛡️</span> {{ t('insurance_details') }}
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="{{ url_for('logout') }}" class="dropdown-item logout">
+              <span>🚪</span> {{ t('logout') }}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="main-nav">
+      <div class="nav-content">
+        <a href="{{ url_for('index') }}" class="nav-item">
+          <span class="nav-icon">🏠</span>
+          <span>{{ t('home') }}</span>
+        </a>
+        <a href="{{ url_for('crop_application') }}" class="nav-item">
+          <span class="nav-icon">🌱</span>
+          <span>{{ t('crop_applications') }}</span>
+        </a>
+        <a href="{{ url_for('disease_report') }}" class="nav-item">
+          <span class="nav-icon">🩺</span>
+          <span>Report Disease</span>
+        </a>
+        <a href="{{ url_for('apply_insurance') }}" class="nav-item">
+          <span class="nav-icon">🛡️</span>
+          <span>Insurance</span>
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="section-header">
+      <h2>📋 {{ t('my_crop_applications') }}</h2>
+      <p>{{ t('manage_crop_applications') }}</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header-flex">
+        <div>
+          <h3 class="card-title">{{ t('applications') }}</h3>
+          <p style="color: var(--muted); margin-top: 0.5rem;">{{ t('total_applications') }}: <strong>{{ applications|length }}</strong></p>
+        </div>
+        <a href="{{ url_for('crop_application') }}" class="btn btn-primary">
+          <span>➕</span> {{ t('add_new') }} {{ t('crop_applications') }}
+        </a>
+      </div>
+    </div>
+
+    {% if applications %}
+    <div class="applications-grid">
+      {% for app in applications %}
+      <div class="application-card">
+        <div class="application-header-row">
+          <div class="application-title">
+            <h3>🌾 {{ app.crop_name }}</h3>
+            <p class="application-id">Application ID: <strong>{{ app.application_id }}</strong></p>
+            <p class="application-id">Applied on: {{ app.created_at.strftime('%d %b %Y') if app.created_at else 'N/A' }}</p>
+          </div>
+          <div>
+            <span class="status-badge status-{{ app.status.lower() }}">
+              {{ app.status }}
+            </span>
+          </div>
+        </div>
+
+        <div class="application-details">
+          <div class="detail-item">
+            <div class="detail-label">Crop Variety</div>
+            <div class="detail-value">{{ app.crop_variety if app.crop_variety else 'Not specified' }}</div>
+          </div>
+          
+          <div class="detail-item">
+            <div class="detail-label">Land Area</div>
+            <div class="detail-value">{{ app.land_area }} acres</div>
+          </div>
+          
+          <div class="detail-item">
+            <div class="detail-label">Expected Yield</div>
+            <div class="detail-value">{{ app.expected_yield }} quintals</div>
+          </div>
+          
+          <div class="detail-item">
+            <div class="detail-label">Estimated Price</div>
+            <div class="detail-value price-highlight">₹{{ app.estimated_price_per_kg }}/kg</div>
+          </div>
+          
+          <div class="detail-item">
+            <div class="detail-label">Planting Date</div>
+            <div class="detail-value">{{ app.planting_date }}</div>
+          </div>
+          
+          <div class="detail-item">
+            <div class="detail-label">Harvest Date</div>
+            <div class="detail-value">{{ app.expected_harvest_date }}</div>
+          </div>
+        </div>
+
+        {% if app.notes %}
+        <div style="margin-top: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 8px;">
+          <div style="font-weight: 600; color: #6b7280; margin-bottom: 0.5rem;">📝 Notes:</div>
+          <div style="color: #374151;">{{ app.notes }}</div>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state-large">
+      <span class="empty-icon-large">🌾</span>
+      <h3>No Crop Applications Yet</h3>
+      <p>You haven't created any crop planning applications yet. Start planning your next crop today!</p>
+      <a href="{{ url_for('crop_application') }}" class="btn btn-primary btn-large">
+        <span>🌱</span> Create New Application
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>🌾 Karnataka Krishi Mitra</h4>
+        <p>Empowering farmers with digital solutions for better agricultural practices and market access.</p>
+      </div>
+      <div class="footer-section">
+        <h4>Contact Us</h4>
+        <p>📧 Email: support@krishimitra.gov.in</p>
+        <p>📞 Helpline: 1800-123-4567</p>
+        <p>🕐 Mon-Sat: 9:00 AM - 6:00 PM</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 Karnataka Krishi Mitra. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    function toggleUserDropdown() {
+      const menu = document.getElementById('userDropdownMenu');
+      menu.classList.toggle('show');
+    }
+
+    window.addEventListener('click', function(e) {
+      if (!e.target.matches('.user-dropdown-btn') && !e.target.closest('.user-dropdown-btn')) {
+        const dropdown = document.getElementById('userDropdownMenu');
+        if (dropdown && dropdown.classList.contains('show')) {
+          dropdown.classList.remove('show');
+        }
+      }
+    });
+  </script>
+</body>
+</html>

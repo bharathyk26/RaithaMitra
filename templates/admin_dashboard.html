@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{ t('admin_panel') }} - {{ t('karnataka_krishi_mitra') }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .admin-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+        
+        .stat-card-admin {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .action-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+        
+        .action-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .action-card h3 {
+            color: #1e3a8a;
+            margin-bottom: 0.5rem;
+        }
+        
+        .action-card p {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+  <header class="admin-header">
+    <div class="header-content">
+      <div class="logo">
+        <span class="logo-icon">🔐</span>
+        <div>
+          <h1>{{ t('admin_panel') }}</h1>
+          <p class="tagline">{{ t('karnataka_krishi_mitra') }}</p>
+        </div>
+      </div>
+
+      <div class="user-section">
+        <div style="display: flex; gap: 0.5rem; margin-right: 1rem;">
+          <a href="{{ url_for('set_lang', lang='en') }}" class="lang-switch-btn {% if language == 'en' %}active{% endif %}">EN</a>
+          <a href="{{ url_for('set_lang', lang='kn') }}" class="lang-switch-btn {% if language == 'kn' %}active{% endif %}">ಕನ್ನಡ</a>
+        </div>
+        <div class="user-info">
+          <span class="user-icon">👨‍💼</span>
+          <div>
+            <div class="user-name">{{ admin.full_name }}</div>
+            <div class="user-role">{{ t('administrator') }}</div>
+          </div>
+        </div>
+        <a href="{{ url_for('admin_logout') }}" class="btn-logout">
+          <span>🚪</span>
+          {{ t('logout') }}
+        </a>
+      </div>
+    </div>
+
+    <nav class="main-nav">
+      <div class="nav-content">
+        <a href="{{ url_for('admin_dashboard') }}" class="nav-item active">
+          <span class="nav-icon">📊</span>
+          <span>{{ t('dashboard') }}</span>
+        </a>
+        <a href="{{ url_for('admin_users') }}" class="nav-item">
+          <span class="nav-icon">👥</span>
+          <span>{{ t('users') }}</span>
+        </a>
+        <a href="{{ url_for('admin_crop_applications') }}" class="nav-item">
+          <span class="nav-icon">🌾</span>
+          <span>{{ t('crop_applications') }}</span>
+        </a>
+        <a href="{{ url_for('admin_insurances') }}" class="nav-item">
+          <span class="nav-icon">🛡️</span>
+          <span>{{ t('insurances') }}</span>
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash-message flash-{{ category }}">
+            <span class="flash-icon">
+              {% if category == 'success' %}✓{% elif category == 'danger' %}✕{% elif category == 'warning' %}⚠{% else %}ℹ{% endif %}
+            </span>
+            <span>{{ message }}</span>
+            <button class="flash-close" onclick="this.parentElement.remove()">×</button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="container">
+    <div class="section-header">
+      <h2>📊 Admin Dashboard</h2>
+      <p>Overview and management of Karnataka Krishi Mitra platform</p>
+    </div>
+
+    <div class="card-grid">
+      <div class="card stat-card-admin">
+        <div class="card-icon">👥</div>
+        <div class="stat-number">{{ stats.total_users }}</div>
+        <div class="stat-label">Registered Farmers</div>
+      </div>
+      <div class="card stat-card-admin">
+        <div class="card-icon">🌾</div>
+        <div class="stat-number">{{ stats.total_applications }}</div>
+        <div class="stat-label">Crop Applications</div>
+      </div>
+      <div class="card stat-card-admin">
+        <div class="card-icon">🛡️</div>
+        <div class="stat-number">{{ stats.total_insurances }}</div>
+        <div class="stat-label">Insurance Applications</div>
+      </div>
+      <div class="card stat-card-admin">
+        <div class="card-icon">⏳</div>
+        <div class="stat-number">{{ stats.pending_insurances }}</div>
+        <div class="stat-label">Pending Approvals</div>
+      </div>
+    </div>
+
+    <div class="section-header" style="margin-top: 3rem;">
+      <h3>⚡ Quick Actions</h3>
+      <p>Common administrative tasks</p>
+    </div>
+
+    <div class="quick-actions">
+      <div class="action-card" onclick="goToAdminUsers()">
+        <div class="action-icon">👥</div>
+        <h3>Manage Users</h3>
+        <p>View, edit, and delete farmer accounts</p>
+      </div>
+
+      <div class="action-card" onclick="goToAdminCropApplications()">
+        <div class="action-icon">🌾</div>
+        <h3>Crop Applications</h3>
+        <p>Review crop planning applications</p>
+      </div>
+
+      <div class="action-card" onclick="goToAdminInsurances()">
+        <div class="action-icon">🛡️</div>
+        <h3>Insurance Management</h3>
+        <p>Approve or reject insurance applications</p>
+      </div>
+
+      <div class="action-card">
+        <div class="action-icon">📈</div>
+        <h3>Reports</h3>
+        <p>Generate system and usage reports</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 2rem;">
+      <h3 style="color: #1e3a8a; margin-bottom: 1rem;">ℹ️ System Information</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+        <div style="padding: 1rem; background: #f8fafc; border-radius: 8px;">
+          <div style="color: #64748b; font-size: 0.9rem;">System Version</div>
+          <div style="font-weight: 600; color: #1e3a8a;">v2.0.0</div>
+        </div>
+        <div style="padding: 1rem; background: #f8fafc; border-radius: 8px;">
+          <div style="color: #64748b; font-size: 0.9rem;">Last Update</div>
+          <div style="font-weight: 600; color: #1e3a8a;">December 2024</div>
+        </div>
+        <div style="padding: 1rem; background: #f8fafc; border-radius: 8px;">
+          <div style="color: #64748b; font-size: 0.9rem;">Database Status</div>
+          <div style="font-weight: 600; color: #10b981;">✓ Active</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function goToAdminUsers() {
+      window.location.href = '{{ url_for("admin_users") }}';
+    }
+    function goToAdminCropApplications() {
+      window.location.href = '{{ url_for("admin_crop_applications") }}';
+    }
+    function goToAdminInsurances() {
+      window.location.href = '{{ url_for("admin_insurances") }}';
+    }
+  </script>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>🔐 Admin Panel</h4>
+        <p>Karnataka Krishi Mitra Administrative Portal</p>
+      </div>
+      <div class="footer-section">
+        <h4>Contact Support</h4>
+        <p>📧 admin@krishimitra.gov.in</p>
+        <p>📞 1800-123-4567 (Ext: 101)</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 Karnataka Krishi Mitra. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

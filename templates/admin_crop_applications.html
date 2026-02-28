@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{ t('crop_applications') }} - {{ t('admin_panel') }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .admin-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+        
+        .applications-grid {
+            display: grid;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .app-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #10b981;
+        }
+        
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .app-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .detail-box {
+            padding: 0.75rem;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+        
+        .detail-label {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+        
+        .detail-value {
+            font-weight: 600;
+            color: #111827;
+        }
+    </style>
+</head>
+<body>
+  <header class="admin-header">
+    <div class="header-content">
+      <div class="logo">
+        <span class="logo-icon">🔐</span>
+        <div>
+          <h1>{{ t('admin_panel') }}</h1>
+          <p class="tagline">{{ t('karnataka_krishi_mitra') }}</p>
+        </div>
+      </div>
+
+      <div class="user-section" style="display: flex; align-items: center; gap: 1rem;">
+        <div style="display: flex; gap: 0.5rem;">
+          <a href="{{ url_for('set_lang', lang='en') }}" class="lang-switch-btn {% if language == 'en' %}active{% endif %}">EN</a>
+          <a href="{{ url_for('set_lang', lang='kn') }}" class="lang-switch-btn {% if language == 'kn' %}active{% endif %}">ಕನ್ನಡ</a>
+        </div>
+        <div class="user-info">
+          <span class="user-icon">👨‍💼</span>
+          <div>
+            <div class="user-name">{{ admin.full_name }}</div>
+            <div class="user-role">{{ t('administrator') }}</div>
+          </div>
+        </div>
+        <a href="{{ url_for('admin_logout') }}" class="btn-logout">
+          <span>🚪</span>
+          {{ t('logout') }}
+        </a>
+      </div>
+    </div>
+
+    <nav class="main-nav">
+      <div class="nav-content">
+        <a href="{{ url_for('admin_dashboard') }}" class="nav-item">
+          <span class="nav-icon">📊</span>
+          <span>{{ t('dashboard') }}</span>
+        </a>
+        <a href="{{ url_for('admin_users') }}" class="nav-item">
+          <span class="nav-icon">👥</span>
+          <span>{{ t('users') }}</span>
+        </a>
+        <a href="{{ url_for('admin_crop_applications') }}" class="nav-item active">
+          <span class="nav-icon">🌾</span>
+          <span>{{ t('crop_applications') }}</span>
+        </a>
+        <a href="{{ url_for('admin_insurances') }}" class="nav-item">
+          <span class="nav-icon">🛡️</span>
+          <span>{{ t('insurances') }}</span>
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash-message flash-{{ category }}">
+            <span class="flash-icon">
+              {% if category == 'success' %}✓{% elif category == 'danger' %}✕{% elif category == 'warning' %}⚠{% else %}ℹ{% endif %}
+            </span>
+            <span>{{ message }}</span>
+            <button class="flash-close" onclick="this.parentElement.remove()">×</button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="container">
+    <div class="section-header">
+      <h2>🌾 Crop Applications Management</h2>
+      <p>View and manage all farmer crop planning applications</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header-flex">
+        <div>
+          <h3>All Applications</h3>
+          <p style="color: #64748b; margin-top: 0.5rem;">Total: <strong>{{ applications|length }}</strong> applications</p>
+        </div>
+        <div class="search-container" style="max-width: 400px;">
+          <input type="text" class="search-bar" id="appSearch" placeholder="Search by farmer, crop..." onkeyup="filterApplications()">
+          <span class="search-icon">🔍</span>
+        </div>
+      </div>
+    </div>
+
+    {% if applications %}
+    <div class="applications-grid" id="applicationsGrid">
+      {% for app in applications %}
+      <div class="app-card" data-search="{{ app.farmer_name }} {{ app.crop_name }} {{ app.location }} {{ app.username }}">
+        <div class="app-header">
+          <div>
+            <h3 style="color: #10b981; margin: 0 0 0.5rem 0;">🌾 {{ app.crop_name }}</h3>
+            <div style="color: #6b7280; font-size: 0.9rem;">
+              <strong>{{ app.farmer_name }}</strong> (@{{ app.username }})
+            </div>
+            <div style="color: #6b7280; font-size: 0.85rem; margin-top: 0.25rem;">
+              Application ID: {{ app.application_id }}
+            </div>
+          </div>
+          <div>
+            <span class="status-badge status-{{ app.status.lower() }}">{{ app.status }}</span>
+          </div>
+        </div>
+
+        <div class="app-details">
+          <div class="detail-box">
+            <div class="detail-label">Farmer Contact</div>
+            <div class="detail-value">{{ app.mobile }}</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-label">Location</div>
+            <div class="detail-value">{{ app.location }}</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-label">Crop Variety</div>
+            <div class="detail-value">{{ app.crop_variety if app.crop_variety else 'Not specified' }}</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-label">Land Area</div>
+            <div class="detail-value">{{ app.land_area }} acres</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-label">Expected Yield</div>
+            <div class="detail-value">{{ app.expected_yield }} quintals</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-label">Estimated Price</div>
+            <div class="detail-value" style="color: #10b981;">₹{{ app.estimated_price_per_kg }}/kg</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-label">Planting Date</div>
+            <div class="detail-value">{{ app.planting_date }}</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-label">Harvest Date</div>
+            <div class="detail-value">{{ app.expected_harvest_date }}</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+          <div style="font-size: 0.85rem; color: #6b7280;">
+            Applied on: {{ app.created_at.strftime('%d %B %Y at %I:%M %p') if app.created_at else 'N/A' }}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state-large">
+      <span class="empty-icon-large">🌾</span>
+      <h3>No Applications Found</h3>
+      <p>There are no crop planning applications yet.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>🔐 Admin Panel</h4>
+        <p>Karnataka Krishi Mitra Administrative Portal</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 Karnataka Krishi Mitra. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    function filterApplications() {
+      const input = document.getElementById('appSearch');
+      const filter = input.value.toLowerCase();
+      const grid = document.getElementById('applicationsGrid');
+      const cards = grid.getElementsByClassName('app-card');
+
+      for (let i = 0; i < cards.length; i++) {
+        const searchText = cards[i].getAttribute('data-search').toLowerCase();
+        cards[i].style.display = searchText.includes(filter) ? '' : 'none';
+      }
+    }
+  </script>
+</body>
+</html>
