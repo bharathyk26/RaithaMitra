@@ -42,11 +42,14 @@ def get_db_connection():
             user=os.getenv("DB_USER"),
             password=os.getenv("DB_PASSWORD"),
             database=os.getenv("DB_NAME"),
-            port=int(os.getenv("DB_PORT"))
+            port=int(os.getenv("DB_PORT", 3306)),
+            ssl_disabled=False,
+            connection_timeout=10,
+            autocommit=True
         )
         return connection
-    except Error as e:
-        print(f"Error connecting to MySQL: {e}")
+    except Exception as e:
+        print("DATABASE CONNECTION ERROR:", e)
         return None
 
 
@@ -1309,7 +1312,5 @@ def get_crop_stats():
         return jsonify({"success": False, "error": "Database error"}), 500
     finally:
         connection.close()
-
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True, host='0.0.0.0', port=5000)
