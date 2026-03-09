@@ -242,8 +242,7 @@ INSERT INTO products (name, category, quantity, price, seller, location, contact
 ('Coconuts', 'Fruits', '500 pieces', 25, 'Shanta Bai', 'Tumakuru', '9876543216', 'coconut'),
 ('Maize', 'Grains', '3 Quintals', 2000, 'Manjunath H', 'Mandya', '9876543217', 'maize'),
 ('Turmeric', 'Spices', '50 kg', 120, 'Geetha Rani', 'Nanjangud, Mysuru', '9876543218', 'turmeric'),
-('Potatoes', 'Vegetables', '100 kg', 20, 'Krishna Murthy', 'Hassan', '9876543219', 'potato');
-ON DUPLICATE KEY UPDATE name=name;
+('Potatoes', 'Vegetables', '100 kg', 20, 'Krishna Murthy', 'Hassan', '9876543219', 'potato')
 
 -- Insert Sample Crop Market Prices
 INSERT INTO crop_market_prices (crop_name, price_per_kg, location, market_date, source) VALUES
