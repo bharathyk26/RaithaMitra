@@ -8,9 +8,31 @@ import json
 import mysql.connector
 from mysql.connector import Error
 import os
+from flask import session
 
+def get_current_user():
+    if 'user_id' not in session:
+        return None
+
+    conn = get_db_connection()
+    if not conn:
+        return None
+
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute(
+        "SELECT * FROM users WHERE id = %s",
+        (session['user_id'],)
+    )
+
+    user = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return user
 app = Flask(__name__)
-app.secret_key = "change_this_to_a_random_secret_in_production"
+app.secret_key = "krishimitra_super_secure_2026"
 
 # Load translations
 def load_translations():
