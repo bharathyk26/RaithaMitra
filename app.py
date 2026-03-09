@@ -100,14 +100,8 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def get_db_connection():'?.
+def get_db_connection():
     try:
-        print("Connecting with:",
-              os.getenv("DB_HOST"),
-              os.getenv("DB_USER"),
-              os.getenv("DB_NAME"),
-              os.getenv("DB_PORT"))
-
         connection = mysql.connector.connect(
             host=os.getenv("DB_HOST"),
             user=os.getenv("DB_USER"),
@@ -116,7 +110,6 @@ def get_db_connection():'?.
             port=int(os.getenv("DB_PORT")),
             connection_timeout=10
         )
-        print("DB CONNECTED SUCCESS")
         return connection
     except Exception as e:
         print("DB ERROR:", e)
