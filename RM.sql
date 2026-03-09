@@ -2,12 +2,12 @@
    FINAL FULL DATABASE SCHEMA – RUN ONCE
    ========================================================= */
 
-DROP DATABASE IF EXISTS krishi_mitra;
-CREATE DATABASE krishi_mitra
+DROP DATABASE IF EXISTS railway;
+CREATE DATABASE railway
 CHARACTER SET utf8mb4
 COLLATE utf8mb4_general_ci;
 
-USE krishi_mitra;
+USE railway;
 
 -- =========================================================
 -- USERS TABLE
@@ -233,16 +233,16 @@ ON DUPLICATE KEY UPDATE soil_type=soil_type;
 
 -- Insert Sample Products
 INSERT INTO products (name, category, quantity, price, seller, location, contact, icon) VALUES
-('Fresh Tomatoes', 'Vegetables', '50 kg', 30, 'Ramesh Kumar', 'Anekal, Bengaluru', '9876543210', '🍅'),
-('Organic Ragi', 'Grains', '2 Quintals', 3500, 'Lakshmi Devi', 'Mandya', '9876543211', '🌾'),
-('Red Onions', 'Vegetables', '100 kg', 25, 'Prakash Gowda', 'Mysuru', '9876543212', '🧅'),
-('Green Chillies', 'Vegetables', '30 kg', 40, 'Suma M', 'Hassan', '9876543213', '🌶️'),
-('Banana', 'Fruits', '200 kg', 35, 'Nagesh Reddy', 'T. Narsipur, Mysuru', '9876543214', '🍌'),
-('Toor Dal', 'Pulses', '5 Quintals', 8000, 'Basavaraj Patil', 'Belagavi', '9876543215', '🫘'),
-('Coconuts', 'Fruits', '500 pieces', 25, 'Shanta Bai', 'Tumakuru', '9876543216', '🥥'),
-('Maize', 'Grains', '3 Quintals', 2000, 'Manjunath H', 'Mandya', '9876543217', '🌽'),
-('Turmeric', 'Spices', '50 kg', 120, 'Geetha Rani', 'Nanjangud, Mysuru', '9876543218', '🟡'),
-('Potatoes', 'Vegetables', '100 kg', 20, 'Krishna Murthy', 'Hassan', '9876543219', '🥔')
+('Fresh Tomatoes', 'Vegetables', '50 kg', 30, 'Ramesh Kumar', 'Anekal, Bengaluru', '9876543210', 'tomato'),
+('Organic Ragi', 'Grains', '2 Quintals', 3500, 'Lakshmi Devi', 'Mandya', '9876543211', 'grain'),
+('Red Onions', 'Vegetables', '100 kg', 25, 'Prakash Gowda', 'Mysuru', '9876543212', 'onion'),
+('Green Chillies', 'Vegetables', '30 kg', 40, 'Suma M', 'Hassan', '9876543213', 'chilli'),
+('Banana', 'Fruits', '200 kg', 35, 'Nagesh Reddy', 'T. Narsipur, Mysuru', '9876543214', 'banana'),
+('Toor Dal', 'Pulses', '5 Quintals', 8000, 'Basavaraj Patil', 'Belagavi', '9876543215', 'dal'),
+('Coconuts', 'Fruits', '500 pieces', 25, 'Shanta Bai', 'Tumakuru', '9876543216', 'coconut'),
+('Maize', 'Grains', '3 Quintals', 2000, 'Manjunath H', 'Mandya', '9876543217', 'maize'),
+('Turmeric', 'Spices', '50 kg', 120, 'Geetha Rani', 'Nanjangud, Mysuru', '9876543218', 'turmeric'),
+('Potatoes', 'Vegetables', '100 kg', 20, 'Krishna Murthy', 'Hassan', '9876543219', 'potato');
 ON DUPLICATE KEY UPDATE name=name;
 
 -- Insert Sample Crop Market Prices
