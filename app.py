@@ -32,8 +32,7 @@ def get_current_user():
 
     return user
 app = Flask(__name__)
-app.secret_key = "krishimitra_super_secure_2026"
-
+app.secret_key = os.environ.get("SECRET_KEY", "dev_secret")
 # Load translations
 def load_translations():
     try:
@@ -1325,4 +1324,5 @@ def get_crop_stats():
     finally:
         connection.close()
 if __name__ == '__main__':
+
     init_db()
