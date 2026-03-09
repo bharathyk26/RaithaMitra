@@ -33,16 +33,8 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-# Database connection function
 def get_db_connection():
     try:
-        print("Connecting with:",
-              os.getenv("DB_HOST"),
-              os.getenv("DB_USER"),
-              os.getenv("DB_NAME"),
-              os.getenv("DB_PORT"))
-
         connection = mysql.connector.connect(
             host=os.getenv("DB_HOST"),
             user=os.getenv("DB_USER"),
@@ -51,12 +43,10 @@ def get_db_connection():
             port=int(os.getenv("DB_PORT")),
             connection_timeout=10
         )
-        print("DB CONNECTED SUCCESS")
         return connection
     except Exception as e:
         print("DB ERROR:", e)
         return None
-
 def init_db():
     connection = get_db_connection()
     if connection:
@@ -110,24 +100,27 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def get_current_user():
-    username = session.get('username')
-    if not username:
-        return None
-    connection = get_db_connection()
-    if not connection:
-        return None
+def get_db_connection():'?.
     try:
-        cursor = connection.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
-        user = cursor.fetchone()
-        cursor.close()
-        return user
-    except Error as e:
-        print(f"Error fetching user: {e}")
+        print("Connecting with:",
+              os.getenv("DB_HOST"),
+              os.getenv("DB_USER"),
+              os.getenv("DB_NAME"),
+              os.getenv("DB_PORT"))
+
+        connection = mysql.connector.connect(
+            host=os.getenv("DB_HOST"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            database=os.getenv("DB_NAME"),
+            port=int(os.getenv("DB_PORT")),
+            connection_timeout=10
+        )
+        print("DB CONNECTED SUCCESS")
+        return connection
+    except Exception as e:
+        print("DB ERROR:", e)
         return None
-    finally:
-        connection.close()
 
 def get_current_admin():
     admin_username = session.get('admin_username')
@@ -1318,5 +1311,3 @@ def get_crop_stats():
         connection.close()
 if __name__ == '__main__':
     init_db()
-
-
