@@ -57,17 +57,16 @@ def allowed_file(filename):
 def get_db_connection():
     try:
         connection = mysql.connector.connect(
-            host=os.getenv("DB_HOST", "gondola.proxy.rlwy.net"),
-            user=os.getenv("DB_USER", "root"),
-            password=os.getenv("DB_PASSWORD", "NmVlASFDYPaysZuCHKIFovAGKpZdcPPr"),
-            database=os.getenv("DB_NAME", "railway"),
-            port=int(os.getenv("DB_PORT", 10785)),   # DEFAULT PORT
+            host=os.getenv("DB_HOST"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            database=os.getenv("DB_NAME"),
+            port=int(os.getenv("DB_PORT")),
             connection_timeout=10
         )
         return connection
-
     except Exception as e:
-        print("DATABASE CONNECTION ERROR:", e)
+        print("DB ERROR:", e)
         return None
 def init_db():
     connection = get_db_connection()
@@ -1324,7 +1323,5 @@ def get_crop_stats():
         return jsonify({"success": False, "error": "Database error"}), 500
     finally:
         connection.close()
-if __name__ == '__main__':
-
-    init_db()
-
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
